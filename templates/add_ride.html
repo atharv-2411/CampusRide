@@ -1,0 +1,496 @@
+{% extends "layout.html" %}
+
+{% block title %}Post a Ride - CampusRide{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Post a New Ride
+                    </h3>
+                    <p class="text-muted mb-0">Help fellow students get around campus</p>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Form Section -->
+                        <div class="col-lg-8">
+                            <form method="POST" id="rideForm">
+                                <!-- Route Information -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-route me-2"></i>Route Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="origin" class="form-label">
+                                                        <i class="fas fa-map-marker-alt text-success me-1"></i>
+                                                        Starting Point
+                                                    </label>
+                                                    <select class="form-select" id="origin" name="origin" required>
+                                                        <option value="">Select starting point</option>
+                                                        <option value="KK Wagh Institute of Engineering Education and Research">KK Wagh College</option>
+                                                        <option value="KK Wagh Polytechnic">KK Wagh Polytechnic</option>
+                                                        <option value="Nashik Central Bus Stand">Nashik Central Bus Stand</option>
+                                                        <option value="College Road">College Road</option>
+                                                        <option value="Gangapur Road">Gangapur Road</option>
+                                                        <option value="Mumbai Naka">Mumbai Naka</option>
+                                                        <option value="Panchavati">Panchavati</option>
+                                                        <option value="Nashik Road">Nashik Road</option>
+                                                        <option value="Dwarka Circle">Dwarka Circle</option>
+                                                        <option value="Shalimar Circle">Shalimar Circle</option>
+                                                        <option value="City Center Mall">City Center Mall</option>
+                                                        <option value="Cidco">Cidco</option>
+                                                        <option value="Satpur">Satpur</option>
+                                                        <option value="Ambad">Ambad</option>
+                                                        <option value="Pathardi Phata">Pathardi Phata</option>
+                                                        <option value="Canada Corner">Canada Corner</option>
+                                                        <option value="Ashok Stambh">Ashok Stambh</option>
+                                                        <option value="Jail Road">Jail Road</option>
+                                                        <option value="Govind Nagar">Govind Nagar</option>
+                                                        <option value="Indira Nagar">Indira Nagar</option>
+                                                        <option value="Trimbakeshwar">Trimbakeshwar</option>
+                                                        <option value="Kalaram Temple">Kalaram Temple</option>
+                                                        <option value="MIDC Ambad">MIDC Ambad</option>
+                                                        <option value="MIDC Satpur">MIDC Satpur</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="destination" class="form-label">
+                                                        <i class="fas fa-flag-checkered text-danger me-1"></i>
+                                                        Destination
+                                                    </label>
+                                                    <select class="form-select" id="destination" name="destination" required>
+                                                        <option value="">Select destination</option>
+                                                        <option value="KK Wagh Institute of Engineering Education and Research">KK Wagh College</option>
+                                                        <option value="KK Wagh Polytechnic">KK Wagh Polytechnic</option>
+                                                        <option value="Nashik Central Bus Stand">Nashik Central Bus Stand</option>
+                                                        <option value="College Road">College Road</option>
+                                                        <option value="Gangapur Road">Gangapur Road</option>
+                                                        <option value="Mumbai Naka">Mumbai Naka</option>
+                                                        <option value="Panchavati">Panchavati</option>
+                                                        <option value="Nashik Road">Nashik Road</option>
+                                                        <option value="Dwarka Circle">Dwarka Circle</option>
+                                                        <option value="Shalimar Circle">Shalimar Circle</option>
+                                                        <option value="City Center Mall">City Center Mall</option>
+                                                        <option value="Cidco">Cidco</option>
+                                                        <option value="Satpur">Satpur</option>
+                                                        <option value="Ambad">Ambad</option>
+                                                        <option value="Pathardi Phata">Pathardi Phata</option>
+                                                        <option value="Canada Corner">Canada Corner</option>
+                                                        <option value="Ashok Stambh">Ashok Stambh</option>
+                                                        <option value="Jail Road">Jail Road</option>
+                                                        <option value="Govind Nagar">Govind Nagar</option>
+                                                        <option value="Indira Nagar">Indira Nagar</option>
+                                                        <option value="Trimbakeshwar">Trimbakeshwar</option>
+                                                        <option value="Kalaram Temple">Kalaram Temple</option>
+                                                        <option value="MIDC Ambad">MIDC Ambad</option>
+                                                        <option value="MIDC Satpur">MIDC Satpur</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Waypoints -->
+                                        <div class="mb-3">
+                                            <label class="form-label">
+                                                <i class="fas fa-map-signs me-1"></i>
+                                                Route Stops (Optional)
+                                            </label>
+                                            <div id="waypoints-container">
+                                                <div class="input-group mb-2">
+                                                    <select class="form-select waypoint">
+                                                        <option value="">Select intermediate stop</option>
+                                                        <option value="KK Wagh Institute of Engineering Education and Research">KK Wagh College</option>
+                                                        <option value="KK Wagh Polytechnic">KK Wagh Polytechnic</option>
+                                                        <option value="Nashik Central Bus Stand">Nashik Central Bus Stand</option>
+                                                        <option value="College Road">College Road</option>
+                                                        <option value="Gangapur Road">Gangapur Road</option>
+                                                        <option value="Mumbai Naka">Mumbai Naka</option>
+                                                        <option value="Panchavati">Panchavati</option>
+                                                        <option value="Nashik Road">Nashik Road</option>
+                                                        <option value="Dwarka Circle">Dwarka Circle</option>
+                                                        <option value="Shalimar Circle">Shalimar Circle</option>
+                                                        <option value="City Center Mall">City Center Mall</option>
+                                                        <option value="Cidco">Cidco</option>
+                                                        <option value="Satpur">Satpur</option>
+                                                        <option value="Ambad">Ambad</option>
+                                                        <option value="Pathardi Phata">Pathardi Phata</option>
+                                                        <option value="Canada Corner">Canada Corner</option>
+                                                        <option value="Ashok Stambh">Ashok Stambh</option>
+                                                        <option value="Jail Road">Jail Road</option>
+                                                        <option value="Govind Nagar">Govind Nagar</option>
+                                                        <option value="Indira Nagar">Indira Nagar</option>
+                                                        <option value="Trimbakeshwar">Trimbakeshwar</option>
+                                                        <option value="Kalaram Temple">Kalaram Temple</option>
+                                                        <option value="MIDC Ambad">MIDC Ambad</option>
+                                                        <option value="MIDC Satpur">MIDC Satpur</option>
+                                                    </select>
+                                                    <button type="button" class="btn btn-outline-danger remove-waypoint">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-primary btn-sm" id="add-waypoint">
+                                                <i class="fas fa-plus me-1"></i>Add Stop
+                                            </button>
+                                            <input type="hidden" name="route_waypoints" id="route_waypoints">
+                                        </div>
+                                        
+                                        <!-- Map -->
+                                        <div class="mb-3">
+                                            <label class="form-label">Route Preview</label>
+                                            <div id="map" class="map-container"></div>
+                                            <div class="mt-2">
+                                                <button type="button" class="btn btn-info btn-sm" id="show-route">
+                                                    <i class="fas fa-directions me-1"></i>Show Route
+                                                </button>
+                                                <small class="text-muted d-block mt-1">Enter locations in Nashik for best results</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Ride Details -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Ride Details</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="departure_time" class="form-label">
+                                                        <i class="fas fa-clock text-primary me-1"></i>
+                                                        Departure Time
+                                                    </label>
+                                                    <input type="datetime-local" class="form-control" id="departure_time" 
+                                                           name="departure_time" required>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="seats_available" class="form-label">
+                                                        <i class="fas fa-users text-warning me-1"></i>
+                                                        Available Seats
+                                                    </label>
+                                                    <select class="form-select" id="seats_available" name="seats_available" required>
+                                                        <option value="">Select seats</option>
+                                                        <option value="1">1 seat</option>
+                                                        <option value="2">2 seats</option>
+                                                        <option value="3">3 seats</option>
+                                                        <option value="4">4 seats</option>
+                                                        <option value="5">5 seats</option>
+                                                        <option value="6">6 seats</option>
+                                                        <option value="7">7 seats</option>
+                                                        <option value="8">8 seats</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-4">
+                                                <div class="mb-3">
+                                                    <label for="price_per_seat" class="form-label">
+                                                        <i class="fas fa-rupee-sign text-success me-1"></i>
+                                                        Price per Seat (₹)
+                                                    </label>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">₹</span>
+                                                        <input type="number" class="form-control" id="price_per_seat" 
+                                                               name="price_per_seat" min="0" step="10" placeholder="Auto-calculated" required>
+                                                        <button type="button" class="btn btn-outline-info" id="calculate-fare">
+                                                            <i class="fas fa-calculator"></i>
+                                                        </button>
+                                                    </div>
+                                                    <small class="text-muted">Suggested: ₹8/km + base fare ₹20</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex gap-3">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane me-2"></i>Post Ride
+                                    </button>
+                                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Back
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Info Section -->
+                        <div class="col-lg-4">
+                            <!-- Driver Info -->
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="fas fa-user-circle me-2"></i>Driver Info</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center mb-3">
+                                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" 
+                                             style="width: 60px; height: 60px;">
+                                            <i class="fas fa-user fa-2x"></i>
+                                        </div>
+                                    </div>
+                                    <div class="text-center">
+                                        <h6 class="mb-1">{{ session.name }}</h6>
+                                        <p class="text-muted small mb-0 text-truncate-1">{{ session.email }}</p>
+                                    </div>
+                                    <div class="alert alert-info mt-3">
+                                        <small>
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            This info will be shared with passengers
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tips -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Driver Tips</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled mb-0">
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            <small>Be specific about locations</small>
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            <small>Allow extra pickup time</small>
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            <small>Set fair pricing</small>
+                                        </li>
+                                        <li class="mb-0">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            <small>Communicate with passengers</small>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Leaflet Routing Machine -->
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+<style>
+.leaflet-routing-container {
+    display: none !important;
+}
+.leaflet-control-container .leaflet-routing-container {
+    display: none !important;
+}
+</style>
+
+<script>
+let map, routingControl;
+
+// Initialize map
+function initMap() {
+    map = L.map('map').setView([19.9975, 73.7898], 13); // Nashik, Maharashtra
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+}
+
+// Add waypoint functionality
+document.getElementById('add-waypoint').addEventListener('click', function() {
+    const container = document.getElementById('waypoints-container');
+    const waypointDiv = document.createElement('div');
+    waypointDiv.className = 'input-group mb-2';
+    waypointDiv.innerHTML = `
+        <select class="form-select waypoint">
+            <option value="">Select intermediate stop</option>
+            <option value="KK Wagh Institute of Engineering Education and Research">KK Wagh College</option>
+            <option value="KK Wagh Polytechnic">KK Wagh Polytechnic</option>
+            <option value="Nashik Central Bus Stand">Nashik Central Bus Stand</option>
+            <option value="College Road">College Road</option>
+            <option value="Gangapur Road">Gangapur Road</option>
+            <option value="Mumbai Naka">Mumbai Naka</option>
+            <option value="Panchavati">Panchavati</option>
+            <option value="Nashik Road">Nashik Road</option>
+            <option value="Dwarka Circle">Dwarka Circle</option>
+            <option value="Shalimar Circle">Shalimar Circle</option>
+            <option value="City Center Mall">City Center Mall</option>
+            <option value="Cidco">Cidco</option>
+            <option value="Satpur">Satpur</option>
+            <option value="Ambad">Ambad</option>
+            <option value="Pathardi Phata">Pathardi Phata</option>
+            <option value="Canada Corner">Canada Corner</option>
+            <option value="Ashok Stambh">Ashok Stambh</option>
+            <option value="Jail Road">Jail Road</option>
+            <option value="Govind Nagar">Govind Nagar</option>
+            <option value="Indira Nagar">Indira Nagar</option>
+            <option value="Trimbakeshwar">Trimbakeshwar</option>
+            <option value="Kalaram Temple">Kalaram Temple</option>
+            <option value="MIDC Ambad">MIDC Ambad</option>
+            <option value="MIDC Satpur">MIDC Satpur</option>
+        </select>
+        <button type="button" class="btn btn-outline-danger remove-waypoint">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    container.appendChild(waypointDiv);
+});
+
+// Remove waypoint
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.remove-waypoint')) {
+        e.target.closest('.input-group').remove();
+    }
+});
+
+// Show route on map
+document.getElementById('show-route').addEventListener('click', async function() {
+    const origin = document.getElementById('origin').value;
+    const destination = document.getElementById('destination').value;
+    
+    if (!origin || !destination) {
+        alert('Please enter both origin and destination');
+        return;
+    }
+    
+    this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Loading...';
+    this.disabled = true;
+    
+    try {
+        // Clear existing route
+        if (routingControl) {
+            map.removeControl(routingControl);
+        }
+        
+        // Collect waypoints
+        const waypointInputs = document.querySelectorAll('.waypoint');
+        const waypointNames = [origin];
+        waypointInputs.forEach(input => {
+            if (input.value.trim()) {
+                waypointNames.push(input.value.trim());
+            }
+        });
+        waypointNames.push(destination);
+        
+        // Geocode waypoints using Nominatim or predefined coordinates
+        const locationCoords = {
+            'KK Wagh Institute of Engineering Education and Research': [20.0063, 73.7749],
+            'KK Wagh Polytechnic': [20.0063, 73.7749],
+            'Nashik Central Bus Stand': [19.9975, 73.7898],
+            'College Road': [20.0063, 73.7749],
+            'Gangapur Road': [20.0176, 73.7794]
+        };
+        
+        const waypointCoords = [];
+        for (const name of waypointNames) {
+            if (locationCoords[name]) {
+                waypointCoords.push(L.latLng(locationCoords[name][0], locationCoords[name][1]));
+            } else {
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(name + ', Nashik, Maharashtra, India')}&limit=1`);
+                    const data = await response.json();
+                    if (data.length > 0) {
+                        waypointCoords.push(L.latLng(parseFloat(data[0].lat), parseFloat(data[0].lon)));
+                    }
+                } catch (error) {
+                    console.error('Geocoding error:', error);
+                }
+            }
+        }
+        
+        if (waypointCoords.length >= 2) {
+            routingControl = L.Routing.control({
+                waypoints: waypointCoords,
+                routeWhileDragging: false,
+                addWaypoints: false,
+                show: false,
+                createMarker: function() { return null; },
+                lineOptions: {
+                    styles: [{ color: '#007bff', weight: 4, opacity: 0.8 }]
+                }
+            }).addTo(map);
+            map.fitBounds(L.latLngBounds(waypointCoords));
+        } else {
+            alert('Could not find locations. Please check your entries.');
+        }
+    } catch (error) {
+        alert('Error showing route. Please try again.');
+    } finally {
+        this.innerHTML = '<i class="fas fa-directions me-1"></i>Show Route';
+        this.disabled = false;
+    }
+});
+
+// Form submission
+document.getElementById('rideForm').addEventListener('submit', function() {
+    const waypointInputs = document.querySelectorAll('.waypoint');
+    const waypointsList = [];
+    waypointInputs.forEach(input => {
+        if (input.value.trim()) {
+            waypointsList.push(input.value.trim());
+        }
+    });
+    document.getElementById('route_waypoints').value = JSON.stringify(waypointsList);
+});
+
+// Calculate suggested fare
+document.getElementById('calculate-fare').addEventListener('click', function() {
+    const origin = document.getElementById('origin').value;
+    const destination = document.getElementById('destination').value;
+    
+    if (!origin || !destination) {
+        alert('Please select origin and destination first');
+        return;
+    }
+    
+    // Distance estimates for common routes
+    const distances = {
+        'KK Wagh Institute of Engineering Education and Research-Nashik Central Bus Stand': 8.5,
+        'Nashik Central Bus Stand-College Road': 5.2,
+        'College Road-Gangapur Road': 3.8,
+        'Mumbai Naka-Panchavati': 12.0
+    };
+    
+    const routeKey = origin + '-' + destination;
+    const reverseKey = destination + '-' + origin;
+    const distance = distances[routeKey] || distances[reverseKey] || 10.0;
+    
+    const suggestedFare = Math.max(20, Math.round(distance * 8));
+    document.getElementById('price_per_seat').value = suggestedFare;
+    
+    // Show calculation
+    const small = document.querySelector('#price_per_seat').parentNode.nextElementSibling;
+    small.innerHTML = `Calculated: ${distance}km × ₹8 = ₹${suggestedFare}`;
+});
+
+// Set minimum datetime and initialize map
+document.addEventListener('DOMContentLoaded', function() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('departure_time').min = now.toISOString().slice(0, 16);
+    
+    initMap();
+});
+</script>
+{% endblock %}

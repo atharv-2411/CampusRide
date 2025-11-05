@@ -1,0 +1,621 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - CampusRide{% endblock %}
+
+{% block content %}
+<style>
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --card-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    --hover-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.modern-dashboard {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.hero-section {
+    background: var(--primary-gradient);
+    color: white;
+    border-radius: 20px;
+    padding: 3rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    transform: rotate(45deg);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--primary-gradient);
+}
+
+.stat-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--hover-shadow);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.stat-icon.rides { background: var(--primary-gradient); }
+.stat-icon.bookings { background: var(--success-gradient); }
+.stat-icon.seats { background: var(--warning-gradient); }
+
+.search-section {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 2rem;
+}
+
+.ride-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.ride-card-modern {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.ride-card-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: var(--success-gradient);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.ride-card-modern:hover::before {
+    transform: scaleY(1);
+}
+
+.ride-card-modern:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--hover-shadow);
+}
+
+.route-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.route-path {
+    display: flex;
+    align-items: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.route-arrow {
+    margin: 0 1rem;
+    color: #667eea;
+    font-size: 1.2rem;
+}
+
+.ride-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.meta-item {
+    text-align: center;
+    padding: 0.75rem;
+    background: #f7fafc;
+    border-radius: 10px;
+}
+
+.meta-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.meta-label {
+    font-size: 0.8rem;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.btn-modern {
+    border-radius: 25px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.2);
+    transition: left 0.3s ease;
+}
+
+.btn-modern:hover::before {
+    left: 100%;
+}
+
+.btn-book { background: var(--success-gradient); color: white; }
+.btn-chat { background: var(--info-gradient); color: white; }
+.btn-complete { background: var(--primary-gradient); color: white; }
+.btn-cancel { background: var(--warning-gradient); color: white; }
+
+.passenger-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #e2e8f0;
+}
+
+.passenger-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.passenger-item {
+    background: #f7fafc;
+    border-radius: 15px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.passenger-item:hover {
+    background: #edf2f7;
+    transform: translateY(-2px);
+}
+
+.passenger-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.passenger-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    margin-right: 1rem;
+}
+
+.passenger-info h6 {
+    margin: 0;
+    color: #2d3748;
+}
+
+.passenger-info small {
+    color: #718096;
+}
+
+.payment-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.payment-badge.paid {
+    background: rgba(72, 187, 120, 0.1);
+    color: #38a169;
+}
+
+.payment-badge.pending {
+    background: rgba(237, 137, 54, 0.1);
+    color: #dd6b20;
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .ride-meta {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .action-buttons {
+        justify-content: center;
+    }
+}
+</style>
+<div class="modern-dashboard">
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-5 fw-bold mb-3">Welcome back, {{ name }}! 👋</h1>
+                <p class="lead mb-0">
+                    {% if role == 'driver' %}
+                        Ready to share your ride and earn some extra cash? 🚗💰
+                    {% elif role == 'passenger' %}
+                        Find your perfect ride and travel smart! 🎯✨
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                {% if role == 'driver' %}
+                <a href="{{ url_for('add_ride') }}" class="btn btn-light btn-lg px-4 py-3">
+                    <i class="fas fa-plus me-2"></i>Post New Ride
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon rides text-white">
+                <i class="fas fa-car"></i>
+            </div>
+            <h3 class="fw-bold mb-1">{{ rides|length }}</h3>
+            <p class="text-muted mb-0">Total Rides</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon bookings text-white">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 class="fw-bold mb-1">
+                {% set total_passengers = rides|sum(attribute='booked_seats') %}
+                {{ total_passengers }}
+            </h3>
+            <p class="text-muted mb-0">Active Bookings</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon seats text-white">
+                <i class="fas fa-chair"></i>
+            </div>
+            <h3 class="fw-bold mb-1">
+                {% set total_available = rides|sum(attribute='available_seats') %}
+                {{ total_available }}
+            </h3>
+            <p class="text-muted mb-0">Available Seats</p>
+        </div>
+    </div>
+
+    <!-- Search Section -->
+    {% if role == 'passenger' %}
+    <div class="search-section">
+        <div class="d-flex align-items-center mb-3">
+            <div class="stat-icon rides text-white me-3">
+                <i class="fas fa-search"></i>
+            </div>
+            <div>
+                <h4 class="mb-0 fw-bold">Find Your Perfect Ride</h4>
+                <p class="text-muted mb-0">Search and filter rides that match your needs</p>
+            </div>
+        </div>
+        <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">From</label>
+                            <select class="form-select" name="search_from">
+                                <option value="">Any Origin</option>
+                                <option value="KK Wagh Institute of Engineering Education and Research" {{ 'selected' if request.args.get('search_from') == 'KK Wagh Institute of Engineering Education and Research' }}>KK Wagh College</option>
+                                <option value="KK Wagh Polytechnic" {{ 'selected' if request.args.get('search_from') == 'KK Wagh Polytechnic' }}>KK Wagh Polytechnic</option>
+                                <option value="Nashik Central Bus Stand" {{ 'selected' if request.args.get('search_from') == 'Nashik Central Bus Stand' }}>Nashik Central Bus Stand</option>
+                                <option value="College Road" {{ 'selected' if request.args.get('search_from') == 'College Road' }}>College Road</option>
+                                <option value="Gangapur Road" {{ 'selected' if request.args.get('search_from') == 'Gangapur Road' }}>Gangapur Road</option>
+                                <option value="Mumbai Naka" {{ 'selected' if request.args.get('search_from') == 'Mumbai Naka' }}>Mumbai Naka</option>
+                                <option value="Panchavati" {{ 'selected' if request.args.get('search_from') == 'Panchavati' }}>Panchavati</option>
+                                <option value="Nashik Road" {{ 'selected' if request.args.get('search_from') == 'Nashik Road' }}>Nashik Road</option>
+                                <option value="Dwarka Circle" {{ 'selected' if request.args.get('search_from') == 'Dwarka Circle' }}>Dwarka Circle</option>
+                                <option value="Shalimar Circle" {{ 'selected' if request.args.get('search_from') == 'Shalimar Circle' }}>Shalimar Circle</option>
+                                <option value="City Center Mall" {{ 'selected' if request.args.get('search_from') == 'City Center Mall' }}>City Center Mall</option>
+                                <option value="Cidco" {{ 'selected' if request.args.get('search_from') == 'Cidco' }}>Cidco</option>
+                                <option value="Satpur" {{ 'selected' if request.args.get('search_from') == 'Satpur' }}>Satpur</option>
+                                <option value="Ambad" {{ 'selected' if request.args.get('search_from') == 'Ambad' }}>Ambad</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">To</label>
+                            <select class="form-select" name="search_to">
+                                <option value="">Any Destination</option>
+                                <option value="KK Wagh Institute of Engineering Education and Research" {{ 'selected' if request.args.get('search_to') == 'KK Wagh Institute of Engineering Education and Research' }}>KK Wagh College</option>
+                                <option value="KK Wagh Polytechnic" {{ 'selected' if request.args.get('search_to') == 'KK Wagh Polytechnic' }}>KK Wagh Polytechnic</option>
+                                <option value="Nashik Central Bus Stand" {{ 'selected' if request.args.get('search_to') == 'Nashik Central Bus Stand' }}>Nashik Central Bus Stand</option>
+                                <option value="College Road" {{ 'selected' if request.args.get('search_to') == 'College Road' }}>College Road</option>
+                                <option value="Gangapur Road" {{ 'selected' if request.args.get('search_to') == 'Gangapur Road' }}>Gangapur Road</option>
+                                <option value="Mumbai Naka" {{ 'selected' if request.args.get('search_to') == 'Mumbai Naka' }}>Mumbai Naka</option>
+                                <option value="Panchavati" {{ 'selected' if request.args.get('search_to') == 'Panchavati' }}>Panchavati</option>
+                                <option value="Nashik Road" {{ 'selected' if request.args.get('search_to') == 'Nashik Road' }}>Nashik Road</option>
+                                <option value="Dwarka Circle" {{ 'selected' if request.args.get('search_to') == 'Dwarka Circle' }}>Dwarka Circle</option>
+                                <option value="Shalimar Circle" {{ 'selected' if request.args.get('search_to') == 'Shalimar Circle' }}>Shalimar Circle</option>
+                                <option value="City Center Mall" {{ 'selected' if request.args.get('search_to') == 'City Center Mall' }}>City Center Mall</option>
+                                <option value="Cidco" {{ 'selected' if request.args.get('search_to') == 'Cidco' }}>Cidco</option>
+                                <option value="Satpur" {{ 'selected' if request.args.get('search_to') == 'Satpur' }}>Satpur</option>
+                                <option value="Ambad" {{ 'selected' if request.args.get('search_to') == 'Ambad' }}>Ambad</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Min Price (₹)</label>
+                            <input type="number" class="form-control" name="min_price" 
+                                   value="{{ request.args.get('min_price', '') }}" min="0">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Max Price (₹)</label>
+                            <input type="number" class="form-control" name="max_price" 
+                                   value="{{ request.args.get('max_price', '') }}" min="0">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Min Seats</label>
+                            <select class="form-select" name="min_seats">
+                                <option value="">Any</option>
+                                <option value="1" {{ 'selected' if request.args.get('min_seats') == '1' }}>1+</option>
+                                <option value="2" {{ 'selected' if request.args.get('min_seats') == '2' }}>2+</option>
+                                <option value="3" {{ 'selected' if request.args.get('min_seats') == '3' }}>3+</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control" name="departure_date" 
+                                   value="{{ request.args.get('departure_date', '') }}">
+                        </div>
+                        <div class="col-md-9 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search me-1"></i>Search
+                            </button>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </a>
+                        </div>
+                    </form>
+    </div>
+    {% endif %}
+
+    <!-- Rides Section -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center">
+            <div class="stat-icon rides text-white me-3">
+                <i class="fas fa-list"></i>
+            </div>
+            <div>
+                <h4 class="mb-0 fw-bold">
+                    {% if role == 'driver' %}Your Rides{% else %}Available Rides{% endif %}
+                </h4>
+                <p class="text-muted mb-0">{{ rides|length }} rides found</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="ride-grid">
+        {% if rides %}
+            {% for ride in rides %}
+            <div class="ride-card-modern">
+                <!-- Route Header -->
+                <div class="route-header">
+                    <div class="route-path">
+                        <span>{{ ride.origin }}</span>
+                        <i class="fas fa-arrow-right route-arrow"></i>
+                        <span>{{ ride.destination }}</span>
+                    </div>
+                    {% if ride.available_seats > 0 %}
+                        <span class="badge" style="background: var(--success-gradient); color: white; padding: 0.5rem 1rem; border-radius: 20px;">Available</span>
+                    {% else %}
+                        <span class="badge" style="background: var(--warning-gradient); color: white; padding: 0.5rem 1rem; border-radius: 20px;">Full</span>
+                    {% endif %}
+                </div>
+
+                <!-- Ride Meta Information -->
+                <div class="ride-meta">
+                    <div class="meta-item">
+                        <div class="meta-value">{{ ride.driver_name }}</div>
+                        <div class="meta-label">Driver</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-value">{{ ride.departure_time }}</div>
+                        <div class="meta-label">Departure</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-value">₹{{ "%.0f"|format(ride.price_per_seat or 0) }}</div>
+                        <div class="meta-label">Per Seat</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-value">{{ ride.available_seats }}/{{ ride.seats_available }}</div>
+                        <div class="meta-label">Seats</div>
+                    </div>
+                    {% if ride.distance_km %}
+                    <div class="meta-item">
+                        <div class="meta-value">{{ "%.1f"|format(ride.distance_km) }} km</div>
+                        <div class="meta-label">Distance</div>
+                    </div>
+                    {% endif %}
+                </div>
+                                
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    {% if role == 'driver' and ride.driver_email == session.email %}
+                        {% if ride.passengers %}
+                            <button class="btn-modern btn-chat" type="button" 
+                                    data-bs-toggle="collapse" data-bs-target="#passengers-{{ ride.id }}">
+                                <i class="fas fa-users me-1"></i>Passengers ({{ ride.passengers|length }})
+                            </button>
+                        {% endif %}
+                        {% if ride.ride_status != 'completed' %}
+                            <form method="POST" action="{{ url_for('complete_ride', ride_id=ride.id) }}" class="d-inline">
+                                <button type="submit" class="btn-modern btn-complete" 
+                                        onclick="return confirm('Mark this ride as completed?')">
+                                    <i class="fas fa-check me-1"></i>Complete
+                                </button>
+                            </form>
+                            <a href="{{ url_for('cancel_ride', ride_id=ride.id) }}" 
+                               class="btn-modern btn-cancel"
+                               onclick="return confirm('Cancel this ride?')">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                        {% else %}
+                            <span class="btn-modern btn-complete" style="opacity: 0.7;">✅ Completed</span>
+                        {% endif %}
+                    {% elif role == 'passenger' and ride.available_seats > 0 and ride.driver_email != session.email and (ride.ride_status != 'completed') %}
+                        <a href="{{ url_for('book_ride', ride_id=ride.id) }}" class="btn-modern btn-book">
+                            <i class="fas fa-ticket-alt me-1"></i>Book Now
+                        </a>
+                    {% elif role == 'passenger' and ride.driver_email != session.email %}
+                        {% set user_booked = ride.passengers|selectattr('passenger_email', 'equalto', session.email)|list %}
+                        {% if user_booked %}
+                            <a href="{{ url_for('chat', ride_id=ride.id) }}" class="btn-modern btn-chat">
+                                <i class="fas fa-comments me-1"></i>Chat
+                            </a>
+                        {% endif %}
+                    {% elif role == 'passenger' and ride.driver_email == session.email %}
+                        <span class="btn-modern" style="background: #e2e8f0; color: #718096;">Your Ride</span>
+                    {% elif role == 'passenger' and ride.available_seats <= 0 %}
+                        <span class="btn-modern" style="background: #fed7d7; color: #c53030;">Full</span>
+                    {% endif %}
+                </div>
+
+                <!-- Passenger Section -->
+                {% if role == 'driver' and ride.driver_email == session.email and ride.passengers %}
+                <div class="collapse passenger-section" id="passengers-{{ ride.id }}">
+                    <h6 class="fw-bold mb-3">👥 Booked Passengers</h6>
+                    <div class="passenger-grid">
+                        {% for passenger in ride.passengers %}
+                        <div class="passenger-item">
+                            <div class="passenger-header">
+                                <div class="passenger-avatar">
+                                    {{ passenger.passenger_name[0].upper() }}
+                                </div>
+                                <div class="passenger-info">
+                                    <h6>{{ passenger.passenger_name }}</h6>
+                                    <small>{{ passenger.passenger_email }}</small>
+                                </div>
+                            </div>
+                            {% if passenger.pickup_location %}
+                            <div class="mb-2">
+                                <small class="text-muted">📍 {{ passenger.pickup_location }} → {{ passenger.dropoff_location }}</small>
+                            </div>
+                            {% endif %}
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="payment-badge {{ 'paid' if passenger.payment_status == 'paid' else 'pending' }}">
+                                    ₹{{ "%.0f"|format(passenger.amount_paid or 0) }} - {{ passenger.payment_status|title }}
+                                </span>
+                                {% if passenger.payment_status != 'paid' %}
+                                <form method="POST" action="{{ url_for('update_payment', booking_id=passenger.booking_id) }}" class="d-inline">
+                                    <input type="hidden" name="payment_status" value="paid">
+                                    <button type="submit" class="btn btn-sm" style="background: var(--success-gradient); color: white; border: none; border-radius: 15px; padding: 0.25rem 0.75rem;">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="ride-card-modern text-center py-5">
+                <div class="stat-icon rides text-white mx-auto mb-3">
+                    <i class="fas fa-car"></i>
+                </div>
+                <h5 class="fw-bold mb-2">No rides available</h5>
+                <p class="text-muted">
+                    {% if role == 'driver' %}
+                        Ready to post your first ride? 🚀
+                    {% else %}
+                        Check back later for new rides! 🔍
+                    {% endif %}
+                </p>
+                {% if role == 'driver' %}
+                <a href="{{ url_for('add_ride') }}" class="btn-modern btn-book">
+                    <i class="fas fa-plus me-1"></i>Post Your First Ride
+                </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+</div>
+{% endblock %}

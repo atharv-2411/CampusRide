@@ -1,0 +1,235 @@
+{% extends "layout.html" %}
+
+{% block title %}Ride Details - CampusRide{% endblock %}
+
+{% block content %}
+<style>
+.detail-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+}
+
+.route-badge {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-weight: 600;
+}
+
+.info-item {
+    background: rgba(0, 123, 255, 0.05);
+    border-left: 4px solid #007bff;
+    padding: 1rem;
+    border-radius: 0 10px 10px 0;
+    margin-bottom: 1rem;
+}
+
+.passenger-avatar {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    margin-right: 1rem;
+}
+
+.waypoint-item {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 10px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-left: 3px solid #007bff;
+}
+</style>
+
+<div class="container py-4">
+    <div class="row">
+        <!-- Main Details -->
+        <div class="col-lg-8">
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-transparent border-0 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 text-primary">
+                            <i class="fas fa-route me-2"></i>Ride Details
+                        </h4>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-1"></i>Back
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Route Information -->
+                    <div class="text-center mb-4">
+                        <div class="route-badge d-inline-block">
+                            {{ ride.origin }} → {{ ride.destination }}
+                        </div>
+                    </div>
+                    
+                    <!-- Key Information -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user-tie text-primary fa-lg me-3"></i>
+                                    <div>
+                                        <div class="fw-bold">Driver</div>
+                                        <div class="text-muted">{{ ride.driver_name }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-clock text-warning fa-lg me-3"></i>
+                                    <div>
+                                        <div class="fw-bold">Departure</div>
+                                        <div class="text-muted">{{ ride.departure_time }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-rupee-sign text-success fa-lg me-3"></i>
+                                    <div>
+                                        <div class="fw-bold">Price per Seat</div>
+                                        <div class="text-muted">₹{{ ride.price_per_seat }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-users text-info fa-lg me-3"></i>
+                                    <div>
+                                        <div class="fw-bold">Available Seats</div>
+                                        <div class="text-muted">{{ ride.available_seats }} / {{ ride.seats_available }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Route Waypoints -->
+                    {% if ride.route_waypoints %}
+                    <div class="mt-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-map-signs me-2"></i>Route Stops
+                        </h6>
+                        {% for waypoint in ride.route_waypoints %}
+                        <div class="waypoint-item">
+                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                            {{ waypoint }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Actions -->
+            <div class="card detail-card mb-4">
+                <div class="card-header bg-transparent border-0">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-cog me-2"></i>Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if role == 'passenger' and ride.driver_email != email and ride.available_seats > 0 %}
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('book_ride', ride_id=ride.id) }}" class="btn btn-success">
+                                <i class="fas fa-ticket-alt me-2"></i>Book This Ride
+                            </a>
+                        </div>
+                    {% elif role == 'driver' and ride.driver_email == email %}
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('cancel_ride', ride_id=ride.id) }}" 
+                               class="btn btn-danger"
+                               onclick="return confirm('Are you sure you want to cancel this ride?')">
+                                <i class="fas fa-times me-2"></i>Cancel Ride
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Contact Driver -->
+            {% if role == 'passenger' and ride.driver_email != email %}
+            <div class="card detail-card">
+                <div class="card-header bg-transparent border-0">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-phone me-2"></i>Contact Driver
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="passenger-avatar mx-auto">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h6 class="fw-bold">{{ ride.driver_name }}</h6>
+                        <p class="text-muted small">{{ ride.driver_email }}</p>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="mailto:{{ ride.driver_email }}" class="btn btn-outline-primary">
+                            <i class="fas fa-envelope me-2"></i>Send Email
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Passengers List (for drivers) -->
+    {% if role == 'driver' and ride.driver_email == email and ride.passengers %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card detail-card">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-users me-2"></i>Booked Passengers ({{ ride.passengers|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for passenger in ride.passengers %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="passenger-avatar">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="fw-bold mb-1">{{ passenger.passenger_name }}</h6>
+                                            <p class="text-muted small mb-2">{{ passenger.passenger_email }}</p>
+                                            <div class="small text-muted">
+                                                <i class="fas fa-clock me-1"></i>Booked: {{ passenger.booked_at }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
