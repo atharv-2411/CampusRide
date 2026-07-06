@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import logging
 import sqlite3
+import json
 import os
 
 # Configure logging
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 # This secret key is crucial for managing sessions (user logins)
-app.config['SECRET_KEY'] = 'your_super_secret_key_12345'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(24))
 
 # --- Database Setup ---
 DATABASE = 'mspa.db'
@@ -78,50 +79,22 @@ def init_db():
     ''')
     
     # Add missing columns if they don't exist (migration)
-    try:
-        cursor.execute('ALTER TABLE rides ADD COLUMN price_per_seat DECIMAL(10,2) DEFAULT 0.00')
-    except:
-        pass  # Column already exists
-    
-    try:
-        cursor.execute('ALTER TABLE rides ADD COLUMN route_waypoints TEXT')
-    except:
-        pass  # Column already exists
-    
-    try:
-        cursor.execute('ALTER TABLE bookings ADD COLUMN pickup_location TEXT')
-    except:
-        pass
-    
-    try:
-        cursor.execute('ALTER TABLE bookings ADD COLUMN dropoff_location TEXT')
-    except:
-        pass
-    
-    try:
-        cursor.execute('ALTER TABLE bookings ADD COLUMN amount_paid DECIMAL(10,2) DEFAULT 0.00')
-    except:
-        pass
-    
-    try:
-        cursor.execute('ALTER TABLE bookings ADD COLUMN payment_status TEXT DEFAULT "pending"')
-    except:
-        pass
-    
-    try:
-        cursor.execute('ALTER TABLE rides ADD COLUMN ride_status TEXT DEFAULT "active"')
-    except:
-        pass
-    
-    try:
-        cursor.execute('ALTER TABLE rides ADD COLUMN completed_at TEXT')
-    except:
-        pass
-    
-    try:
-        cursor.execute('ALTER TABLE rides ADD COLUMN distance_km DECIMAL(5,2) DEFAULT 0.00')
-    except:
-        pass
+    migrations = [
+        'ALTER TABLE rides ADD COLUMN price_per_seat DECIMAL(10,2) DEFAULT 0.00',
+        'ALTER TABLE rides ADD COLUMN route_waypoints TEXT',
+        'ALTER TABLE rides ADD COLUMN ride_status TEXT DEFAULT "active"',
+        'ALTER TABLE rides ADD COLUMN completed_at TEXT',
+        'ALTER TABLE rides ADD COLUMN distance_km DECIMAL(5,2) DEFAULT 0.00',
+        'ALTER TABLE bookings ADD COLUMN pickup_location TEXT',
+        'ALTER TABLE bookings ADD COLUMN dropoff_location TEXT',
+        'ALTER TABLE bookings ADD COLUMN amount_paid DECIMAL(10,2) DEFAULT 0.00',
+        'ALTER TABLE bookings ADD COLUMN payment_status TEXT DEFAULT "pending"',
+    ]
+    for migration in migrations:
+        try:
+            cursor.execute(migration)
+        except sqlite3.OperationalError:
+            pass  # Column already exists
     
     # Chat messages table
     cursor.execute('''
@@ -158,8 +131,6 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-# Initialize database
-init_db()
 # ---------------------
 
 
@@ -221,6 +192,9 @@ def signup():
         role = request.form['role']
 
         # Validation
+        if role not in ('driver', 'passenger'):
+            flash('Invalid role selected.', 'error')
+            return redirect(url_for('signup'))
         if not email.endswith('.edu'):
             flash('Must use a valid college email address (e.g., .edu).', 'error')
             return redirect(url_for('signup'))
@@ -322,10 +296,9 @@ def dashboard():
         # Parse waypoints if they exist
         waypoints = ride_dict.get('route_waypoints')
         if waypoints:
-            import json
             try:
                 ride_dict['route_waypoints'] = json.loads(waypoints)
-            except:
+            except (json.JSONDecodeError, TypeError):
                 ride_dict['route_waypoints'] = []
         else:
             ride_dict['route_waypoints'] = []
@@ -525,10 +498,9 @@ def book_ride(ride_id):
     # Parse waypoints if they exist
     waypoints = ride_dict.get('route_waypoints')
     if waypoints:
-        import json
         try:
             ride_dict['route_waypoints'] = json.loads(waypoints)
-        except:
+        except (json.JSONDecodeError, TypeError):
             ride_dict['route_waypoints'] = []
     else:
         ride_dict['route_waypoints'] = []
@@ -536,7 +508,6 @@ def book_ride(ride_id):
     if request.method == 'POST':
         pickup_location = request.form['pickup_location']
         dropoff_location = request.form['dropoff_location']
-        payment_method = request.form['payment_method']
         
         # Add booking
         conn.execute('''
@@ -661,10 +632,9 @@ def ride_details(ride_id):
     # Parse waypoints if they exist
     waypoints = ride_dict.get('route_waypoints')
     if waypoints:
-        import json
         try:
             ride_dict['route_waypoints'] = json.loads(waypoints)
-        except:
+        except (json.JSONDecodeError, TypeError):
             ride_dict['route_waypoints'] = []
     else:
         ride_dict['route_waypoints'] = []
@@ -790,11 +760,11 @@ def chat(ride_id):
 def send_message(ride_id):
     """Send a chat message."""
     if 'email' not in session:
-        return {'success': False, 'error': 'Not logged in'}
+        return jsonify({'success': False, 'error': 'Not logged in'}), 401
     
     message = request.form.get('message', '').strip()
     if not message:
-        return {'success': False, 'error': 'Empty message'}
+        return jsonify({'success': False, 'error': 'Empty message'}), 400
     
     conn = get_db_connection()
     conn.execute('''
@@ -808,4 +778,5 @@ def send_message(ride_id):
     return redirect(url_for('chat', ride_id=ride_id))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    init_db()
+    app.run(debug=os.environ.get('FLASK_DEBUG', 'false').lower() == 'true')

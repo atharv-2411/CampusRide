@@ -6,172 +6,423 @@
     <title>{% block title %}CampusRide - College Ride Sharing{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2563eb;
+            --primary-color: #6c47ff;
+            --primary-dark: #4f2fe0;
+            --primary-light: #ede9ff;
+            --accent-color: #ff6b35;
+            --accent-dark: #e85520;
             --secondary-color: #64748b;
-            --success-color: #059669;
-            --danger-color: #dc2626;
-            --warning-color: #d97706;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --bg-color: #f5f4ff;
+            --card-bg: #ffffff;
+            --text-primary: #1e1b4b;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --navbar-height: 64px;
         }
-        
+
+        * { box-sizing: border-box; }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: #f8fafc;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            opacity: 0;
+            animation: pageLoad 0.4s ease forwards;
         }
-        
+
+        @keyframes pageLoad {
+            to { opacity: 1; }
+        }
+
+        /* ── NAVBAR ── */
+        .navbar {
+            background: var(--primary-color) !important;
+            height: var(--navbar-height);
+            box-shadow: 0 2px 16px rgba(108,71,255,0.18);
+            padding: 0 0;
+        }
+
+        .navbar .container {
+            height: 100%;
+        }
+
         .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
+            font-weight: 800;
+            font-size: 1.35rem;
+            letter-spacing: -0.5px;
+            color: #fff !important;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        
-        .card {
-            border: none;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-            border-radius: 12px;
+
+        .navbar-brand .brand-icon {
+            background: rgba(255,255,255,0.18);
+            border-radius: 10px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
         }
-        
-        .btn {
-            border-radius: 8px;
+
+        .navbar-nav .nav-link {
+            color: rgba(255,255,255,0.85) !important;
             font-weight: 500;
-            padding: 0.5rem 1rem;
-        }
-        
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        
-        .btn-success {
-            background-color: var(--success-color);
-            border-color: var(--success-color);
-        }
-        
-        .alert {
+            font-size: 0.92rem;
+            padding: 0.4rem 0.85rem !important;
             border-radius: 8px;
+            transition: background 0.18s, color 0.18s;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .navbar-nav .nav-link:hover,
+        .navbar-nav .nav-link.active {
+            background: rgba(255,255,255,0.15);
+            color: #fff !important;
+        }
+
+        .navbar-nav .nav-item.cta .nav-link {
+            background: var(--accent-color);
+            color: #fff !important;
+            font-weight: 600;
+            padding: 0.4rem 1.1rem !important;
+        }
+
+        .navbar-nav .nav-item.cta .nav-link:hover {
+            background: var(--accent-dark);
+        }
+
+        .navbar-toggler {
+            border: none;
+            color: #fff;
+        }
+
+        .navbar-toggler:focus { box-shadow: none; }
+
+        .dropdown-menu {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            padding: 0.5rem;
+            min-width: 180px;
+        }
+
+        .dropdown-item {
+            border-radius: 8px;
+            font-size: 0.9rem;
+            padding: 0.5rem 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: background 0.15s;
+        }
+
+        .dropdown-item:hover {
+            background: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        /* ── CARDS ── */
+        .card {
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 12px rgba(108,71,255,0.06);
+            border-radius: 16px;
+            background: var(--card-bg);
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.1rem 1.4rem;
+            border-radius: 16px 16px 0 0 !important;
+        }
+
+        /* ── BUTTONS ── */
+        .btn {
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.55rem 1.2rem;
+            transition: all 0.2s ease;
             border: none;
         }
-        
-        .form-control, .form-select {
-            border-radius: 8px;
-            border: 1px solid #d1d5db;
-            padding: 0.75rem;
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: #fff;
         }
-        
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(108,71,255,0.35);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(16,185,129,0.35);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .btn-accent {
+            background: var(--accent-color);
+            color: #fff;
+        }
+
+        .btn-accent:hover {
+            background: var(--accent-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(255,107,53,0.35);
+            color: #fff;
+        }
+
+        .btn-outline-primary {
+            border: 1.5px solid var(--primary-color);
+            color: var(--primary-color);
+            background: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: #fff;
+        }
+
+        .btn-outline-secondary {
+            border: 1.5px solid var(--border-color);
+            color: var(--secondary-color);
+            background: transparent;
+        }
+
+        .btn-outline-secondary:hover {
+            background: #f1f5f9;
+            color: var(--text-primary);
+            border-color: #cbd5e1;
+        }
+
+        /* ── FORM CONTROLS ── */
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 1.5px solid var(--border-color);
+            padding: 0.65rem 0.9rem;
+            font-size: 0.92rem;
+            color: var(--text-primary);
+            background: #fafafa;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
         .form-control:focus, .form-select:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+            box-shadow: 0 0 0 3px rgba(108,71,255,0.12);
+            background: #fff;
+            outline: none;
         }
-        
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            margin-bottom: 0.4rem;
+        }
+
+        .input-group-text {
+            background: #f1f0ff;
+            border: 1.5px solid var(--border-color);
+            color: var(--primary-color);
+            border-radius: 10px 0 0 10px;
+        }
+
+        .input-group .form-control {
+            border-radius: 0 10px 10px 0;
+        }
+
+        /* ── ALERTS ── */
+        .alert {
+            border-radius: 12px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        /* ── TOAST ── */
+        .toast {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        .toast-header {
+            border-radius: 12px 12px 0 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* ── RIDE CARD ── */
+        .ride-card {
+            transition: transform 0.22s ease, box-shadow 0.22s ease;
+            border-radius: 16px;
+        }
+
+        .ride-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(108,71,255,0.13);
+        }
+
+        /* ── STATUS BADGES ── */
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.3rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .available { background: #d1fae5; color: #065f46; }
+        .full { background: #fee2e2; color: #991b1b; }
+        .my-ride { background: var(--primary-light); color: var(--primary-dark); }
+
+        /* ── HERO ── */
         .hero-section {
-            background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
             color: white;
             padding: 4rem 0;
         }
-        
+
+        /* ── FEATURE CARD ── */
         .feature-card {
             text-align: center;
             padding: 2rem;
             height: 100%;
         }
-        
+
         .feature-icon {
-            font-size: 3rem;
+            font-size: 2.5rem;
             color: var(--primary-color);
             margin-bottom: 1rem;
         }
-        
-        .ride-card {
-            transition: transform 0.2s, box-shadow 0.2s;
+
+        /* ── MAP ── */
+        .map-container {
+            height: 300px;
+            border-radius: 12px;
+            overflow: hidden;
         }
-        
-        .ride-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
-        }
-        
+
+        /* ── UTILITIES ── */
         .text-truncate-2 {
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            text-overflow: ellipsis;
         }
-        
+
         .text-truncate-1 {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        
-        .map-container {
-            height: 300px;
-            border-radius: 8px;
-            overflow: hidden;
+
+        /* ── FOOTER ── */
+        footer {
+            background: #1e1b4b !important;
         }
-        
-        .status-badge {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 20px;
-            font-weight: 600;
+
+        footer p {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.88rem;
+            margin: 0;
         }
-        
-        .available { background-color: #dcfce7; color: #166534; }
-        .full { background-color: #fef2f2; color: #991b1b; }
-        .my-ride { background-color: #eff6ff; color: #1e40af; }
-        
+
+        /* ── RESPONSIVE ── */
         @media (max-width: 768px) {
-            .navbar-brand { font-size: 1.2rem; }
+            .navbar-brand { font-size: 1.1rem; }
             .hero-section { padding: 2rem 0; }
             .display-4 { font-size: 2rem; }
             .card-body { padding: 1rem; }
+            .navbar-collapse {
+                background: var(--primary-dark);
+                border-radius: 0 0 16px 16px;
+                padding: 0.75rem 1rem 1rem;
+                margin-top: 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="fas fa-car me-2"></i>CampusRide
+                <span class="brand-icon"><i class="fas fa-car"></i></span>
+                CampusRide
             </a>
-            
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
                     {% if session.email %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('dashboard') }}">
-                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                <i class="fas fa-th-large"></i>Dashboard
                             </a>
                         </li>
                         {% if session.role == 'driver' %}
-                        <li class="nav-item">
+                        <li class="nav-item cta">
                             <a class="nav-link" href="{{ url_for('add_ride') }}">
-                                <i class="fas fa-plus me-1"></i>Post Ride
+                                <i class="fas fa-plus"></i>Post Ride
                             </a>
                         </li>
                         {% endif %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user me-1"></i>{{ session.name }}
+                                <i class="fas fa-user-circle"></i>{{ session.name }}
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ url_for('logout') }}">
-                                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
                                 </a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                            <a class="nav-link" href="{{ url_for('login') }}">
+                                <i class="fas fa-sign-in-alt"></i>Login
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('signup') }}">Sign Up</a>
+                        <li class="nav-item cta">
+                            <a class="nav-link" href="{{ url_for('signup') }}">
+                                <i class="fas fa-user-plus"></i>Sign Up
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
@@ -213,7 +464,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Auto-initialize toasts
         document.addEventListener('DOMContentLoaded', function() {
             var toastElList = [].slice.call(document.querySelectorAll('.toast'));
             var toastList = toastElList.map(function(toastEl) {

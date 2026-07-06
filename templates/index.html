@@ -2,177 +2,443 @@
 
 {% block content %}
 <style>
-:root {
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --light-gradient: linear-gradient(135deg, #f8faff 0%, #e8f4fd 100%);
-    --blue-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    --card-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    --hover-shadow: 0 20px 40px rgba(0,0,0,0.15);
-}
-
 .hero-section {
-    background: var(--primary-gradient);
-    min-height: 100vh;
+    background: linear-gradient(135deg, #6c47ff 0%, #4f2fe0 60%, #3b1fa8 100%);
+    min-height: 92vh;
     display: flex;
     align-items: center;
     position: relative;
     overflow: hidden;
+    padding: 5rem 0;
 }
 
 .hero-section::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
-    opacity: 0.3;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 60% 50% at 80% 50%, rgba(255,107,53,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 10% 80%, rgba(255,255,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
 }
 
-.hero-content {
-    position: relative;
-    z-index: 2;
+.hero-section::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: var(--bg-color);
+    clip-path: ellipse(55% 100% at 50% 100%);
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.6s ease both;
 }
 
 .hero-title {
-    font-size: 4rem;
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
     font-weight: 800;
     color: white;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    margin-bottom: 1.5rem;
-    animation: fadeInUp 1s ease-out;
+    line-height: 1.15;
+    letter-spacing: -1px;
+    margin-bottom: 1.25rem;
+    animation: fadeInUp 0.7s ease 0.1s both;
+}
+
+.hero-title span {
+    color: #ffb347;
 }
 
 .hero-subtitle {
-    font-size: 1.4rem;
-    color: rgba(255,255,255,0.9);
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.82);
     margin-bottom: 2.5rem;
-    animation: fadeInUp 1s ease-out 0.2s both;
+    line-height: 1.7;
+    max-width: 480px;
+    animation: fadeInUp 0.7s ease 0.2s both;
 }
 
 .hero-buttons {
-    animation: fadeInUp 1s ease-out 0.4s both;
-}
-
-.btn-hero {
-    padding: 15px 35px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    border-radius: 50px;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    margin: 0 10px;
-    display: inline-block;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    animation: fadeInUp 0.7s ease 0.3s both;
 }
 
 .btn-hero-primary {
-    background: white;
-    color: #667eea;
-    border: 2px solid white;
+    background: var(--accent-color);
+    color: #fff;
+    padding: 0.85rem 2rem;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 12px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 24px rgba(255,107,53,0.4);
+    border: none;
 }
 
 .btn-hero-primary:hover {
-    background: transparent;
-    color: white;
+    background: var(--accent-dark);
     transform: translateY(-3px);
-    box-shadow: 0 12px 35px rgba(0,0,0,0.3);
+    box-shadow: 0 12px 32px rgba(255,107,53,0.5);
+    color: #fff;
 }
 
 .btn-hero-outline {
-    background: transparent;
-    color: white;
-    border: 2px solid white;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    padding: 0.85rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1.5px solid rgba(255,255,255,0.4);
+    transition: all 0.25s ease;
+    backdrop-filter: blur(4px);
 }
 
 .btn-hero-outline:hover {
-    background: white;
-    color: #667eea;
+    background: rgba(255,255,255,0.22);
+    color: #fff;
     transform: translateY(-3px);
-    box-shadow: 0 12px 35px rgba(0,0,0,0.3);
 }
 
-.hero-icon {
-    font-size: 15rem;
-    color: rgba(255,255,255,0.2);
-    animation: float 3s ease-in-out infinite;
+.hero-visual {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeInUp 0.8s ease 0.2s both;
 }
+
+.hero-car-wrap {
+    width: 320px;
+    height: 320px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255,255,255,0.15);
+    animation: float 4s ease-in-out infinite;
+}
+
+.hero-car-wrap i {
+    font-size: 9rem;
+    color: rgba(255,255,255,0.9);
+    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.2));
+}
+
+.hero-stat-pill {
+    position: absolute;
+    background: #fff;
+    border-radius: 50px;
+    padding: 0.6rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.hero-stat-pill .pill-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: #fff;
+}
+
+.pill-1 { top: 10%; right: -10px; }
+.pill-2 { bottom: 15%; left: -20px; }
+.pill-3 { top: 50%; right: -30px; }
 
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-16px); }
+}
+
+/* ── FEATURES ── */
+.features-section {
+    padding: 6rem 0 5rem;
+    background: var(--bg-color);
+}
+
+.section-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--primary-color);
+    margin-bottom: 0.75rem;
+}
+
+.section-title {
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+    margin-bottom: 0.75rem;
+}
+
+.section-sub {
+    color: var(--text-muted);
+    font-size: 1rem;
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+.feat-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2.2rem 1.8rem;
+    height: 100%;
+    border: 1px solid var(--border-color);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.feat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+}
+
+.feat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 48px rgba(108,71,255,0.12);
+}
+
+.feat-card:hover::before {
+    transform: scaleX(1);
+}
+
+.feat-icon-wrap {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin-bottom: 1.4rem;
+}
+
+.feat-icon-wrap.purple { background: #ede9ff; color: var(--primary-color); }
+.feat-icon-wrap.orange { background: #fff3ee; color: var(--accent-color); }
+.feat-icon-wrap.green  { background: #d1fae5; color: var(--success-color); }
+
+.feat-card h5 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.6rem;
+}
+
+.feat-card p {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.65;
+    margin: 0;
+}
+
+/* ── HOW IT WORKS ── */
+.how-section {
+    padding: 5rem 0;
+    background: #fff;
+}
+
+.step-card {
+    text-align: center;
+    padding: 1.5rem 1rem;
+    position: relative;
+}
+
+.step-number {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    font-size: 1.3rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.2rem;
+    transition: all 0.25s ease;
+}
+
+.step-card:hover .step-number {
+    background: var(--primary-color);
+    color: #fff;
+    transform: scale(1.1);
+}
+
+.step-card h6 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.4rem;
+}
+
+.step-card p {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    margin: 0;
+}
+
+.step-connector {
+    position: absolute;
+    top: 2.5rem;
+    right: -50%;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-color), transparent);
+    opacity: 0.25;
+}
+
+/* ── CTA ── */
+.cta-section {
+    padding: 5rem 0;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 50% 80% at 90% 50%, rgba(255,107,53,0.2) 0%, transparent 70%);
+}
+
+@media (max-width: 768px) {
+    .hero-section { padding: 3.5rem 0 4rem; min-height: auto; }
+    .hero-car-wrap { width: 200px; height: 200px; }
+    .hero-car-wrap i { font-size: 5.5rem; }
+    .pill-1, .pill-2, .pill-3 { display: none; }
+    .hero-buttons { flex-direction: column; }
+    .btn-hero-primary, .btn-hero-outline { justify-content: center; }
+    .features-section, .how-section, .cta-section { padding: 3.5rem 0; }
+    .step-connector { display: none; }
 }
 </style>
 
-<!-- Hero Section -->
+<!-- Hero -->
 <section class="hero-section">
-    <div class="container hero-content">
-        <div class="row align-items-center">
+    <div class="container position-relative" style="z-index:2;">
+        <div class="row align-items-center gy-5">
             <div class="col-lg-6">
-                <h1 class="hero-title">Safe & Smart<br>College Rides</h1>
-                <p class="hero-subtitle">Connect with fellow students for convenient, cost-effective transportation around Nashik and beyond.</p>
+                <div class="hero-badge">
+                    <i class="fas fa-shield-alt"></i> Verified College Students Only
+                </div>
+                <h1 class="hero-title">
+                    Smarter Rides for<br><span>Campus Life</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Connect with fellow students for safe, affordable rides around Nashik. Split costs, save time, make friends.
+                </p>
                 <div class="hero-buttons">
-                    <a href="{{ url_for('signup') }}" class="btn-hero btn-hero-primary">
-                        <i class="fas fa-user-plus me-2"></i>Get Started
+                    <a href="{{ url_for('signup') }}" class="btn-hero-primary">
+                        <i class="fas fa-rocket"></i>Get Started Free
                     </a>
-                    <a href="{{ url_for('login') }}" class="btn-hero btn-hero-outline">
-                        <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                    <a href="{{ url_for('login') }}" class="btn-hero-outline">
+                        <i class="fas fa-sign-in-alt"></i>Sign In
                     </a>
                 </div>
             </div>
-            <div class="col-lg-6 text-center">
-                <i class="fas fa-car-side hero-icon"></i>
+            <div class="col-lg-6">
+                <div class="hero-visual">
+                    <div class="hero-car-wrap">
+                        <i class="fas fa-car-side"></i>
+                    </div>
+                    <div class="hero-stat-pill pill-1">
+                        <div class="pill-icon" style="background:var(--success-color)"><i class="fas fa-check"></i></div>
+                        Verified Drivers
+                    </div>
+                    <div class="hero-stat-pill pill-2">
+                        <div class="pill-icon" style="background:var(--accent-color)"><i class="fas fa-rupee-sign"></i></div>
+                        Save up to 60%
+                    </div>
+                    <div class="hero-stat-pill pill-3">
+                        <div class="pill-icon" style="background:var(--primary-color)"><i class="fas fa-star"></i></div>
+                        .edu Emails Only
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Features Section -->
-<section class="py-5" style="padding: 100px 0; background: var(--light-gradient);">
+<!-- Features -->
+<section class="features-section">
     <div class="container">
-        <h2 style="font-size: 3rem; font-weight: 700; color: #2d3748; margin-bottom: 1rem; text-align: center;">Why Choose CampusRide?</h2>
-        <p style="font-size: 1.2rem; color: #718096; text-align: center; margin-bottom: 4rem;">Join thousands of students already saving money and making connections</p>
-        
+        <div class="text-center mb-5">
+            <div class="section-label">Why CampusRide</div>
+            <h2 class="section-title">Built for students, by students</h2>
+            <p class="section-sub">Everything you need for safe, convenient campus transportation.</p>
+        </div>
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="card" style="background: white; border: none; border-radius: 20px; padding: 3rem 2rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: all 0.3s ease; height: 100%; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 20px 40px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.1)';">
-                    <div style="width: 80px; height: 80px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem; font-size: 2rem; color: white; transition: all 0.3s ease;">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h5 style="font-size: 1.5rem; font-weight: 700; color: #2d3748; margin-bottom: 1rem;">Safe & Secure</h5>
-                    <p style="color: #718096; line-height: 1.6;">All users verified with college email addresses. Rate and review system ensures trusted connections.</p>
+                <div class="feat-card">
+                    <div class="feat-icon-wrap purple"><i class="fas fa-shield-alt"></i></div>
+                    <h5>Safe & Verified</h5>
+                    <p>All users sign up with a verified .edu college email. Only your campus community, no strangers.</p>
                 </div>
             </div>
-            
             <div class="col-md-4">
-                <div class="card" style="background: white; border: none; border-radius: 20px; padding: 3rem 2rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: all 0.3s ease; height: 100%; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 20px 40px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.1)';">
-                    <div style="width: 80px; height: 80px; background: var(--blue-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem; font-size: 2rem; color: white; transition: all 0.3s ease;">
-                        <i class="fas fa-rupee-sign"></i>
-                    </div>
-                    <h5 style="font-size: 1.5rem; font-weight: 700; color: #2d3748; margin-bottom: 1rem;">Save Money</h5>
-                    <p style="color: #718096; line-height: 1.6;">Split fuel costs and parking fees. Much cheaper than auto-rickshaws or private cabs.</p>
+                <div class="feat-card">
+                    <div class="feat-icon-wrap orange"><i class="fas fa-rupee-sign"></i></div>
+                    <h5>Save Money</h5>
+                    <p>Split fuel and parking costs with fellow students. Far cheaper than auto-rickshaws or private cabs.</p>
                 </div>
             </div>
-            
             <div class="col-md-4">
-                <div class="card" style="background: white; border: none; border-radius: 20px; padding: 3rem 2rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: all 0.3s ease; height: 100%; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 20px 40px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.1)';">
-                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem; font-size: 2rem; color: white; transition: all 0.3s ease;">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h5 style="font-size: 1.5rem; font-weight: 700; color: #2d3748; margin-bottom: 1rem;">Meet People</h5>
-                    <p style="color: #718096; line-height: 1.6;">Connect with fellow students and make new friends while traveling together.</p>
+                <div class="feat-card">
+                    <div class="feat-icon-wrap green"><i class="fas fa-users"></i></div>
+                    <h5>Build Community</h5>
+                    <p>Meet classmates, make new friends, and build your campus network — one ride at a time.</p>
                 </div>
             </div>
         </div>
@@ -180,64 +446,58 @@
 </section>
 
 <!-- How It Works -->
-<section style="padding: 100px 0; background: white; color: #2d3748;">
+<section class="how-section">
     <div class="container">
-        <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1rem; text-align: center; color: #2d3748;">How It Works</h2>
-        <p style="font-size: 1.2rem; text-align: center; color: #718096; margin-bottom: 5rem;">Get started in just 4 simple steps</p>
-        
-        <div class="row g-4">
-            <div class="col-md-3 text-center">
-                <div class="mb-3">
-                    <div style="width: 80px; height: 80px; background: rgba(102,126,234,0.1); border: 3px solid #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem; font-weight: 700; transition: all 0.3s ease; color: #667eea;" onmouseover="this.style.background='#667eea'; this.style.color='white'; this.style.transform='scale(1.1)';" onmouseout="this.style.background='rgba(102,126,234,0.1)'; this.style.color='#667eea'; this.style.transform='scale(1)';">
-                        <span>1</span>
-                    </div>
+        <div class="text-center mb-5">
+            <div class="section-label">Simple Process</div>
+            <h2 class="section-title">Up and riding in 4 steps</h2>
+        </div>
+        <div class="row g-4 justify-content-center">
+            <div class="col-6 col-md-3">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h6>Sign Up</h6>
+                    <p>Create account with your college email</p>
                 </div>
-                <h6 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem;">Sign Up</h6>
-                <p style="color: #718096;">Create account with your college email</p>
             </div>
-            
-            <div class="col-md-3 text-center">
-                <div class="mb-3">
-                    <div style="width: 80px; height: 80px; background: rgba(102,126,234,0.1); border: 3px solid #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem; font-weight: 700; transition: all 0.3s ease; color: #667eea;" onmouseover="this.style.background='#667eea'; this.style.color='white'; this.style.transform='scale(1.1)';" onmouseout="this.style.background='rgba(102,126,234,0.1)'; this.style.color='#667eea'; this.style.transform='scale(1)';">
-                        <span>2</span>
-                    </div>
+            <div class="col-6 col-md-3">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h6>Find or Post</h6>
+                    <p>Search for rides or post your own</p>
                 </div>
-                <h6 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem;">Find or Post</h6>
-                <p style="color: #718096;">Search for rides or post your own</p>
             </div>
-            
-            <div class="col-md-3 text-center">
-                <div class="mb-3">
-                    <div style="width: 80px; height: 80px; background: rgba(102,126,234,0.1); border: 3px solid #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem; font-weight: 700; transition: all 0.3s ease; color: #667eea;" onmouseover="this.style.background='#667eea'; this.style.color='white'; this.style.transform='scale(1.1)';" onmouseout="this.style.background='rgba(102,126,234,0.1)'; this.style.color='#667eea'; this.style.transform='scale(1)';">
-                        <span>3</span>
-                    </div>
+            <div class="col-6 col-md-3">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h6>Connect</h6>
+                    <p>Chat and coordinate with students</p>
                 </div>
-                <h6 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem;">Connect</h6>
-                <p style="color: #718096;">Message and coordinate with other students</p>
             </div>
-            
-            <div class="col-md-3 text-center">
-                <div class="mb-3">
-                    <div style="width: 80px; height: 80px; background: rgba(102,126,234,0.1); border: 3px solid #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2rem; font-weight: 700; transition: all 0.3s ease; color: #667eea;" onmouseover="this.style.background='#667eea'; this.style.color='white'; this.style.transform='scale(1.1)';" onmouseout="this.style.background='rgba(102,126,234,0.1)'; this.style.color='#667eea'; this.style.transform='scale(1)';">
-                        <span>4</span>
-                    </div>
+            <div class="col-6 col-md-3">
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h6>Travel</h6>
+                    <p>Enjoy your safe, affordable ride</p>
                 </div>
-                <h6 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem;">Travel</h6>
-                <p style="color: #718096;">Enjoy your safe, affordable ride</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- CTA Section -->
-<section style="padding: 100px 0; background: var(--primary-gradient); color: white; text-align: center;">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8 mx-auto">
-                <h2 style="font-size: 3rem; font-weight: 700; margin-bottom: 1.5rem;">Ready to Start Riding?</h2>
-                <p style="font-size: 1.3rem; margin-bottom: 3rem; opacity: 0.9;">Join your college community and start saving on transportation today.</p>
-                <a href="{{ url_for('signup') }}" style="background: white; color: #667eea; padding: 18px 40px; font-size: 1.2rem; font-weight: 700; border: none; border-radius: 50px; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: inline-block;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.2)';">
-                    <i class="fas fa-rocket me-2"></i>Join CampusRide Now
+<!-- CTA -->
+<section class="cta-section">
+    <div class="container position-relative" style="z-index:2;">
+        <div class="row justify-content-center text-center">
+            <div class="col-lg-7">
+                <h2 style="font-size:clamp(1.8rem,3vw,2.6rem);font-weight:800;color:#fff;margin-bottom:1rem;">
+                    Ready to ride smarter?
+                </h2>
+                <p style="color:rgba(255,255,255,0.8);font-size:1.05rem;margin-bottom:2.5rem;line-height:1.7;">
+                    Join your campus community and start saving on transportation today.
+                </p>
+                <a href="{{ url_for('signup') }}" class="btn-hero-primary" style="font-size:1.05rem;padding:1rem 2.5rem;">
+                    <i class="fas fa-user-plus"></i>Join CampusRide — It's Free
                 </a>
             </div>
         </div>

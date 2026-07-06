@@ -3,25 +3,178 @@
 {% block title %}Sign Up - CampusRide{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card">
-                <div class="card-body p-4">
-                    <div class="text-center mb-4">
-                        <i class="fas fa-user-plus text-primary" style="font-size: 3rem;"></i>
-                        <h2 class="fw-bold mt-3">Join CampusRide</h2>
-                        <p class="text-muted">Create your account to start riding</p>
+<style>
+.auth-page {
+    min-height: calc(100vh - 64px);
+    background: linear-gradient(135deg, #f5f4ff 0%, #ede9ff 100%);
+    display: flex;
+    align-items: center;
+    padding: 3rem 0;
+}
+
+.auth-card {
+    background: #fff;
+    border-radius: 24px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 20px 60px rgba(108,71,255,0.1);
+    padding: 2.8rem 2.4rem;
+    width: 100%;
+    animation: fadeInUp 0.45s ease both;
+}
+
+.auth-logo {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #fff;
+    margin: 0 auto 1.4rem;
+    box-shadow: 0 8px 24px rgba(108,71,255,0.3);
+}
+
+.auth-title {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.3rem;
+    letter-spacing: -0.5px;
+}
+
+.auth-sub {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    margin-bottom: 2rem;
+}
+
+.role-option {
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.role-option:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.role-option input[type="radio"] {
+    accent-color: var(--primary-color);
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.role-option input[type="radio"]:checked + .role-label-content .role-icon {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.role-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.role-label-content strong {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.role-label-content small {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.btn-auth {
+    background: var(--primary-color);
+    color: #fff;
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 0.97rem;
+    font-weight: 700;
+    border-radius: 12px;
+    border: none;
+    transition: all 0.22s ease;
+    margin-bottom: 1.2rem;
+}
+
+.btn-auth:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108,71,255,0.35);
+    color: #fff;
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.auth-footer-link {
+    color: var(--primary-color);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.auth-footer-link:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<div class="auth-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-sm-10 col-md-8 col-lg-6 col-xl-5">
+                <div class="auth-card">
+                    <div class="text-center">
+                        <div class="auth-logo"><i class="fas fa-user-plus"></i></div>
+                        <h2 class="auth-title">Join CampusRide</h2>
+                        <p class="auth-sub">Create your account to start riding</p>
                     </div>
 
                     <form method="POST">
                         <div class="mb-3">
                             <label for="name" class="form-label">Full Name</label>
                             <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-user"></i>
-                                </span>
-                                <input type="text" class="form-control" id="name" name="name" 
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input type="text" class="form-control" id="name" name="name"
                                        placeholder="Enter your full name" required>
                             </div>
                         </div>
@@ -29,50 +182,58 @@
                         <div class="mb-3">
                             <label for="email" class="form-label">College Email</label>
                             <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-envelope"></i>
-                                </span>
-                                <input type="email" class="form-control" id="email" name="email" 
-                                       placeholder="your.email@college.edu" required>
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       placeholder="you@college.edu" required>
                             </div>
-                            <div class="form-text">Must be a valid .edu email address</div>
+                            <div class="form-text" style="font-size:0.8rem;">Must be a valid .edu email address</div>
                         </div>
 
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
                             <div class="input-group">
-                                <span class="input-group-text">
-                                    <i class="fas fa-lock"></i>
-                                </span>
-                                <input type="password" class="form-control" id="password" name="password" 
-                                       placeholder="Create a password" required minlength="6">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password"
+                                       placeholder="Create a password (min 6 chars)" required minlength="6">
                             </div>
-                            <div class="form-text">Minimum 6 characters</div>
                         </div>
 
                         <div class="mb-4">
-                            <label for="role" class="form-label">I want to...</label>
-                            <select class="form-select" id="role" name="role" required>
-                                <option value="">Choose your role</option>
-                                <option value="driver">
-                                    <i class="fas fa-car"></i> Offer rides (Driver)
-                                </option>
-                                <option value="passenger">
-                                    <i class="fas fa-user"></i> Find rides (Passenger)
-                                </option>
-                            </select>
+                            <label class="form-label">I want to…</label>
+                            <div class="d-flex flex-column gap-2">
+                                <label class="role-option">
+                                    <input type="radio" name="role" id="role" value="driver" required>
+                                    <div class="role-label-content d-flex align-items-center gap-2">
+                                        <div class="role-icon"><i class="fas fa-car"></i></div>
+                                        <div>
+                                            <strong>Offer Rides</strong>
+                                            <small>I'm a driver — post rides and earn</small>
+                                        </div>
+                                    </div>
+                                </label>
+                                <label class="role-option">
+                                    <input type="radio" name="role" id="role" value="passenger" required>
+                                    <div class="role-label-content d-flex align-items-center gap-2">
+                                        <div class="role-icon"><i class="fas fa-user"></i></div>
+                                        <div>
+                                            <strong>Find Rides</strong>
+                                            <small>I'm a passenger — book and travel</small>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100 mb-3">
+                        <button type="submit" class="btn btn-auth">
                             <i class="fas fa-rocket me-2"></i>Create Account
                         </button>
                     </form>
 
-                    <div class="text-center">
-                        <p class="text-muted mb-0">Already have an account?</p>
-                        <a href="{{ url_for('login') }}" class="text-decoration-none">
-                            <strong>Sign In</strong>
-                        </a>
+                    <div class="auth-divider">or</div>
+
+                    <div class="text-center" style="font-size:0.92rem; color:var(--text-muted);">
+                        Already have an account?
+                        <a href="{{ url_for('login') }}" class="auth-footer-link ms-1">Sign in</a>
                     </div>
                 </div>
             </div>
