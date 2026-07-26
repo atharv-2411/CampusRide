@@ -1,142 +1,110 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import logging
-import sqlite3
 import json
 import os
 
-# Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-# This secret key is crucial for managing sessions (user logins)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(24))
 
-# --- Database Setup ---
-DATABASE = 'mspa.db'
+# --- Database Configuration ---
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///mspa.db')
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-def init_db():
-    """Initialize the database with required tables."""
-    conn = sqlite3.connect(DATABASE)
-    cursor = conn.cursor()
-    
-    # Users table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            name TEXT NOT NULL,
-            role TEXT NOT NULL
-        )
-    ''')
-    
-    # Rides table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS rides (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            driver_email TEXT NOT NULL,
-            driver_name TEXT NOT NULL,
-            origin TEXT NOT NULL,
-            destination TEXT NOT NULL,
-            departure_time TEXT NOT NULL,
-            seats_available INTEGER NOT NULL,
-            price_per_seat DECIMAL(10,2) DEFAULT 0.00,
-            route_waypoints TEXT,
-            created_at TEXT NOT NULL,
-            FOREIGN KEY (driver_email) REFERENCES users (email)
-        )
-    ''')
-    
-    # Bookings table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS bookings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            ride_id INTEGER NOT NULL,
-            passenger_email TEXT NOT NULL,
-            passenger_name TEXT NOT NULL,
-            pickup_location TEXT,
-            dropoff_location TEXT,
-            amount_paid DECIMAL(10,2) DEFAULT 0.00,
-            payment_status TEXT DEFAULT 'pending',
-            booked_at TEXT NOT NULL,
-            FOREIGN KEY (ride_id) REFERENCES rides (id),
-            FOREIGN KEY (passenger_email) REFERENCES users (email)
-        )
-    ''')
-    
-    # Activity log table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS activity_log (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT NOT NULL,
-            user_name TEXT NOT NULL,
-            action TEXT NOT NULL,
-            details TEXT NOT NULL
-        )
-    ''')
-    
-    # Add missing columns if they don't exist (migration)
-    migrations = [
-        'ALTER TABLE rides ADD COLUMN price_per_seat DECIMAL(10,2) DEFAULT 0.00',
-        'ALTER TABLE rides ADD COLUMN route_waypoints TEXT',
-        'ALTER TABLE rides ADD COLUMN ride_status TEXT DEFAULT "active"',
-        'ALTER TABLE rides ADD COLUMN completed_at TEXT',
-        'ALTER TABLE rides ADD COLUMN distance_km DECIMAL(5,2) DEFAULT 0.00',
-        'ALTER TABLE bookings ADD COLUMN pickup_location TEXT',
-        'ALTER TABLE bookings ADD COLUMN dropoff_location TEXT',
-        'ALTER TABLE bookings ADD COLUMN amount_paid DECIMAL(10,2) DEFAULT 0.00',
-        'ALTER TABLE bookings ADD COLUMN payment_status TEXT DEFAULT "pending"',
-    ]
-    for migration in migrations:
+db = SQLAlchemy(app)
+
+# --- Models ---
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    password = db.Column(db.Text, nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(50), nullable=False)
+
+class Ride(db.Model):
+    __tablename__ = 'rides'
+    id = db.Column(db.Integer, primary_key=True)
+    driver_email = db.Column(db.String(255), db.ForeignKey('users.email'), nullable=False)
+    driver_name = db.Column(db.String(255), nullable=False)
+    origin = db.Column(db.Text, nullable=False)
+    destination = db.Column(db.Text, nullable=False)
+    departure_time = db.Column(db.String(50), nullable=False)
+    seats_available = db.Column(db.Integer, nullable=False)
+    price_per_seat = db.Column(db.Numeric(10, 2), default=0.00)
+    route_waypoints = db.Column(db.Text)
+    ride_status = db.Column(db.String(50), default='active')
+    completed_at = db.Column(db.String(50))
+    distance_km = db.Column(db.Numeric(5, 2), default=0.00)
+    created_at = db.Column(db.String(50), nullable=False)
+    bookings = db.relationship('Booking', backref='ride', lazy=True, cascade='all, delete-orphan')
+    messages = db.relationship('ChatMessage', backref='ride', lazy=True, cascade='all, delete-orphan')
+
+class Booking(db.Model):
+    __tablename__ = 'bookings'
+    id = db.Column(db.Integer, primary_key=True)
+    ride_id = db.Column(db.Integer, db.ForeignKey('rides.id'), nullable=False)
+    passenger_email = db.Column(db.String(255), db.ForeignKey('users.email'), nullable=False)
+    passenger_name = db.Column(db.String(255), nullable=False)
+    pickup_location = db.Column(db.Text)
+    dropoff_location = db.Column(db.Text)
+    amount_paid = db.Column(db.Numeric(10, 2), default=0.00)
+    payment_status = db.Column(db.String(50), default='pending')
+    booked_at = db.Column(db.String(50), nullable=False)
+
+class ActivityLog(db.Model):
+    __tablename__ = 'activity_log'
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.String(50), nullable=False)
+    user_name = db.Column(db.String(255), nullable=False)
+    action = db.Column(db.String(100), nullable=False)
+    details = db.Column(db.Text, nullable=False)
+
+class ChatMessage(db.Model):
+    __tablename__ = 'chat_messages'
+    id = db.Column(db.Integer, primary_key=True)
+    ride_id = db.Column(db.Integer, db.ForeignKey('rides.id'), nullable=False)
+    sender_email = db.Column(db.String(255), db.ForeignKey('users.email'), nullable=False)
+    sender_name = db.Column(db.String(255), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.String(50), nullable=False)
+
+# --- Helpers ---
+def log_activity(user_name, action, details):
+    db.session.add(ActivityLog(
+        timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        user_name=user_name, action=action, details=details
+    ))
+
+def parse_waypoints(ride_dict):
+    wp = ride_dict.get('route_waypoints')
+    if wp:
         try:
-            cursor.execute(migration)
-        except sqlite3.OperationalError:
-            pass  # Column already exists
-    
-    # Chat messages table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS chat_messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            ride_id INTEGER NOT NULL,
-            sender_email TEXT NOT NULL,
-            sender_name TEXT NOT NULL,
-            message TEXT NOT NULL,
-            timestamp TEXT NOT NULL,
-            FOREIGN KEY (ride_id) REFERENCES rides (id),
-            FOREIGN KEY (sender_email) REFERENCES users (email)
-        )
-    ''')
-    
-    # Insert default users if they don't exist
-    cursor.execute('SELECT COUNT(*) FROM users')
-    if cursor.fetchone()[0] == 0:
-        cursor.execute('''
-            INSERT INTO users (email, password, name, role) VALUES 
-            (?, ?, ?, ?),
-            (?, ?, ?, ?)
-        ''', (
-            'driver@college.edu', generate_password_hash('driver123'), 'Alex Driver', 'driver',
-            'passenger@college.edu', generate_password_hash('pass123'), 'Sam Passenger', 'passenger'
-        ))
-    
-    conn.commit()
-    conn.close()
+            ride_dict['route_waypoints'] = json.loads(wp)
+        except (json.JSONDecodeError, TypeError):
+            ride_dict['route_waypoints'] = []
+    else:
+        ride_dict['route_waypoints'] = []
+    return ride_dict
 
-def get_db_connection():
-    """Get database connection."""
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
+def ride_to_dict(ride):
+    d = {c.name: getattr(ride, c.name) for c in ride.__table__.columns}
+    d['price_per_seat'] = float(d['price_per_seat'] or 0)
+    d['distance_km'] = float(d['distance_km'] or 0)
+    d['amount_paid'] = float(d.get('amount_paid') or 0) if 'amount_paid' in d else 0
+    return d
 
-# ---------------------
-
-
+# --- Routes ---
 @app.route('/')
 def index():
-    """Serves the home page."""
     if 'email' in session:
         return redirect(url_for('dashboard'))
     return render_template('index.html')
@@ -144,54 +112,31 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Handles user login."""
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-
-        # Check if user exists and password is correct
-        conn = get_db_connection()
-        user = conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
-        conn.close()
-        if user and check_password_hash(user['password'], password):
-            # User is "logged in" by storing their email in the session
+        user = User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.password, password):
             session['email'] = email
-            session['name'] = user['name']
-            session['role'] = user['role']
-            
-            # Log the login
-            conn = get_db_connection()
-            conn.execute('''
-                INSERT INTO activity_log (timestamp, user_name, action, details)
-                VALUES (?, ?, ?, ?)
-            ''', (
-                datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                user['name'],
-                'LOGIN',
-                f"User {user['name']} ({user['role']}) logged in"
-            ))
-            conn.commit()
-            conn.close()
-            logger.info(f"Login successful: {user['name']} ({user['role']})")
-            
-            flash(f'Welcome {user["role"].title()}!', 'success')
+            session['name'] = user.name
+            session['role'] = user.role
+            log_activity(user.name, 'LOGIN', f"User {user.name} ({user.role}) logged in")
+            db.session.commit()
+            logger.info(f"Login successful: {user.name} ({user.role})")
+            flash(f'Welcome {user.role.title()}!', 'success')
             return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid email or password.', 'error')
-
+        flash('Invalid email or password.', 'error')
     return render_template('login.html')
 
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    """Handles user registration."""
     if request.method == 'POST':
         name = request.form['name']
         email = request.form['email']
         password = request.form['password']
         role = request.form['role']
 
-        # Validation
         if role not in ('driver', 'passenger'):
             flash('Invalid role selected.', 'error')
             return redirect(url_for('signup'))
@@ -202,32 +147,13 @@ def signup():
             flash('Password must be at least 6 characters.', 'error')
             return redirect(url_for('signup'))
 
-        # Check if user already exists
-        conn = get_db_connection()
-        existing_user = conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
-        if existing_user:
-            conn.close()
+        if User.query.filter_by(email=email).first():
             flash('Email already registered.', 'error')
             return redirect(url_for('signup'))
 
-        # Add new user to database
-        conn.execute('''
-            INSERT INTO users (email, password, name, role)
-            VALUES (?, ?, ?, ?)
-        ''', (email, generate_password_hash(password), name, role))
-        
-        # Log the registration
-        conn.execute('''
-            INSERT INTO activity_log (timestamp, user_name, action, details)
-            VALUES (?, ?, ?, ?)
-        ''', (
-            datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            name,
-            'REGISTER',
-            f"New {role} account created: {name}"
-        ))
-        conn.commit()
-        conn.close()
+        db.session.add(User(email=email, password=generate_password_hash(password), name=name, role=role))
+        log_activity(name, 'REGISTER', f"New {role} account created: {name}")
+        db.session.commit()
         logger.info(f"New user registered: {name} ({role})")
         flash('Account created! Please log in.', 'success')
         return redirect(url_for('login'))
@@ -237,546 +163,358 @@ def signup():
 
 @app.route('/dashboard')
 def dashboard():
-    """Shows the main dashboard after login."""
     if 'email' not in session:
         flash('You must be logged in to see this page.', 'error')
         return redirect(url_for('login'))
 
-    # Get filter parameters
     search_from = request.args.get('search_from', '')
     search_to = request.args.get('search_to', '')
-    min_price = request.args.get('min_price', type=int)
-    max_price = request.args.get('max_price', type=int)
+    min_price = request.args.get('min_price', type=float)
+    max_price = request.args.get('max_price', type=float)
     min_seats = request.args.get('min_seats', type=int)
     departure_date = request.args.get('departure_date', '')
-    
-    # Build query with filters
-    query = '''
-        SELECT r.*, COALESCE(COUNT(b.id), 0) as booked_seats
-        FROM rides r
-        LEFT JOIN bookings b ON r.id = b.ride_id
-        WHERE (r.ride_status != 'completed' OR r.ride_status IS NULL)
-    '''
-    params = []
-    
+
+    query = Ride.query.filter(
+        (Ride.ride_status != 'completed') | (Ride.ride_status == None)
+    )
     if search_from:
-        query += ' AND r.origin LIKE ?'
-        params.append(f'%{search_from}%')
+        query = query.filter(Ride.origin.ilike(f'%{search_from}%'))
     if search_to:
-        query += ' AND r.destination LIKE ?'
-        params.append(f'%{search_to}%')
-    if min_price:
-        query += ' AND r.price_per_seat >= ?'
-        params.append(min_price)
-    if max_price:
-        query += ' AND r.price_per_seat <= ?'
-        params.append(max_price)
+        query = query.filter(Ride.destination.ilike(f'%{search_to}%'))
+    if min_price is not None:
+        query = query.filter(Ride.price_per_seat >= min_price)
+    if max_price is not None:
+        query = query.filter(Ride.price_per_seat <= max_price)
     if departure_date:
-        query += ' AND DATE(r.departure_time) = ?'
-        params.append(departure_date)
-    
-    query += ' GROUP BY r.id'
-    
-    if min_seats:
-        query += ' HAVING (r.seats_available - COALESCE(COUNT(b.id), 0)) >= ?'
-        params.append(min_seats)
-    
-    query += ' ORDER BY r.created_at DESC'
-    
-    # Fetch rides from database
-    conn = get_db_connection()
-    rides = conn.execute(query, params).fetchall()
-    
-    # Convert to list of dicts and add passenger info for drivers
+        query = query.filter(Ride.departure_time.like(f'{departure_date}%'))
+
+    rides = query.order_by(Ride.created_at.desc()).all()
+
     rides_list = []
     for ride in rides:
-        ride_dict = dict(ride)
-        ride_dict['available_seats'] = ride_dict['seats_available'] - ride_dict['booked_seats']
-        
-        # Parse waypoints if they exist
-        waypoints = ride_dict.get('route_waypoints')
-        if waypoints:
-            try:
-                ride_dict['route_waypoints'] = json.loads(waypoints)
-            except (json.JSONDecodeError, TypeError):
-                ride_dict['route_waypoints'] = []
-        else:
-            ride_dict['route_waypoints'] = []
-        
-        # Add passenger list for drivers
+        ride_dict = ride_to_dict(ride)
+        booked_seats = len(ride.bookings)
+        ride_dict['booked_seats'] = booked_seats
+        ride_dict['available_seats'] = ride_dict['seats_available'] - booked_seats
+        ride_dict = parse_waypoints(ride_dict)
+
+        if min_seats and ride_dict['available_seats'] < min_seats:
+            continue
+
         if session.get('role') == 'driver' and ride_dict['driver_email'] == session['email']:
-            passengers = conn.execute('''
-                SELECT b.id as booking_id, passenger_name, passenger_email, pickup_location, dropoff_location, 
-                       amount_paid, payment_status, booked_at
-                FROM bookings b WHERE ride_id = ?
-            ''', (ride_dict['id'],)).fetchall()
-            ride_dict['passengers'] = [dict(p) for p in passengers]
+            ride_dict['passengers'] = [{
+                'booking_id': b.id,
+                'passenger_name': b.passenger_name,
+                'passenger_email': b.passenger_email,
+                'pickup_location': b.pickup_location,
+                'dropoff_location': b.dropoff_location,
+                'amount_paid': float(b.amount_paid or 0),
+                'payment_status': b.payment_status,
+                'booked_at': b.booked_at
+            } for b in ride.bookings]
         else:
             ride_dict['passengers'] = []
-            
+
         rides_list.append(ride_dict)
-    
-    conn.close()
-    
-    return render_template('dashboard.html', 
-                         name=session['name'], 
-                         role=session.get('role', 'user'), 
-                         rides=rides_list,
-                         session=session)
+
+    return render_template('dashboard.html',
+                           name=session['name'],
+                           role=session.get('role', 'user'),
+                           rides=rides_list,
+                           session=session)
 
 
 @app.route('/logout')
 def logout():
-    """Logs the user out."""
     user_name = session.get('name', 'Unknown')
     session.pop('email', None)
     session.pop('name', None)
     session.pop('role', None)
-    
-    # Log the logout
-    conn = get_db_connection()
-    conn.execute('''
-        INSERT INTO activity_log (timestamp, user_name, action, details)
-        VALUES (?, ?, ?, ?)
-    ''', (
-        datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        user_name,
-        'LOGOUT',
-        f"User {user_name} logged out"
-    ))
-    conn.commit()
-    conn.close()
+    log_activity(user_name, 'LOGOUT', f"User {user_name} logged out")
+    db.session.commit()
     logger.info(f"User logged out: {user_name}")
-    
     flash('You have been logged out.', 'success')
     return redirect(url_for('index'))
 
 
-# -----------------------------------------------
-# --- NEWLY ADDED FUNCTION FOR ADDING A RIDE ---
-# -----------------------------------------------
 @app.route('/add-ride', methods=['GET', 'POST'])
 def add_ride():
-    """Handles adding a new ride."""
     if 'email' not in session:
         flash('You must be logged in to post a ride.', 'error')
         return redirect(url_for('login'))
-    
     if session.get('role') != 'driver':
         flash('Only drivers can post rides.', 'error')
         return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
-        # --- This is the BACKEND part ---
-        # Get data from the form
         origin = request.form['origin']
         destination = request.form['destination']
         departure_time = request.form['departure_time']
         seats = int(request.form['seats_available'])
         price_per_seat = float(request.form.get('price_per_seat', 0))
         route_waypoints = request.form.get('route_waypoints', '')
-        
-        # Validation
+
         if seats < 1 or seats > 8:
             flash('Seats must be between 1 and 8.', 'error')
             return render_template('add_ride.html')
-        
         if price_per_seat < 0:
             flash('Price must be a positive number.', 'error')
             return render_template('add_ride.html')
-        
-        driver_name = session['name']
-        
-        # Calculate distance (simple estimation)
-        distance_km = 10.0  # Default distance
-        if origin != destination:
-            # Simple distance calculation based on location
-            location_distances = {
-                ('KK Wagh Institute of Engineering Education and Research', 'Nashik Central Bus Stand'): 8.5,
-                ('Nashik Central Bus Stand', 'College Road'): 5.2,
-                ('College Road', 'Gangapur Road'): 3.8,
-                ('Mumbai Naka', 'Panchavati'): 12.0
-            }
-            distance_km = location_distances.get((origin, destination), 
-                         location_distances.get((destination, origin), 10.0))
-        
-        # Calculate split fare based on distance
-        base_fare = max(20, distance_km * 8)  # ₹8 per km, minimum ₹20
+
+        location_distances = {
+            ('KK Wagh Institute of Engineering Education and Research', 'Nashik Central Bus Stand'): 8.5,
+            ('Nashik Central Bus Stand', 'College Road'): 5.2,
+            ('College Road', 'Gangapur Road'): 3.8,
+            ('Mumbai Naka', 'Panchavati'): 12.0
+        }
+        distance_km = location_distances.get((origin, destination),
+                      location_distances.get((destination, origin), 10.0))
+        base_fare = max(20, distance_km * 8)
         suggested_price = base_fare if price_per_seat == 0 else price_per_seat
-        
-        # Add the new ride to database
-        conn = get_db_connection()
-        conn.execute('''
-            INSERT INTO rides (driver_email, driver_name, origin, destination, departure_time, 
-                             seats_available, price_per_seat, route_waypoints, distance_km, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            session['email'],
-            driver_name,
-            origin,
-            destination,
-            departure_time,
-            seats,
-            suggested_price,
-            route_waypoints,
-            distance_km,
-            datetime.now().strftime('%Y-%m-%d %H:%M')
+
+        db.session.add(Ride(
+            driver_email=session['email'],
+            driver_name=session['name'],
+            origin=origin,
+            destination=destination,
+            departure_time=departure_time,
+            seats_available=seats,
+            price_per_seat=suggested_price,
+            route_waypoints=route_waypoints,
+            distance_km=distance_km,
+            created_at=datetime.now().strftime('%Y-%m-%d %H:%M')
         ))
-        
-        # Log the ride creation
-        conn.execute('''
-            INSERT INTO activity_log (timestamp, user_name, action, details)
-            VALUES (?, ?, ?, ?)
-        ''', (
-            datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            driver_name,
-            'CREATE_RIDE',
-            f"Posted ride from {origin} to {destination} for ₹{price_per_seat}/seat"
-        ))
-        conn.commit()
-        conn.close()
-        logger.info(f"Ride created by {driver_name}: {origin} -> {destination}")
-        
+        log_activity(session['name'], 'CREATE_RIDE',
+                     f"Posted ride from {origin} to {destination} for ₹{price_per_seat}/seat")
+        db.session.commit()
+        logger.info(f"Ride created by {session['name']}: {origin} -> {destination}")
         flash('Your ride has been posted successfully!', 'success')
-        
-        # 5. Send the user back to the dashboard to see their new ride
         return redirect(url_for('dashboard'))
 
-    # --- This is the FRONTEND part (GET request) ---
-    # Show the "add ride" form page
     return render_template('add_ride.html')
-# -----------------------------------------------
-# --- END OF NEW FUNCTION ---
-# -----------------------------------------------
 
 
 @app.route('/book-ride/<int:ride_id>', methods=['GET', 'POST'])
 def book_ride(ride_id):
-    """Book a ride."""
     if 'email' not in session:
         flash('You must be logged in to book a ride.', 'error')
         return redirect(url_for('login'))
-    
     if session.get('role') != 'passenger':
         flash('Only passengers can book rides.', 'error')
         return redirect(url_for('dashboard'))
-    
-    conn = get_db_connection()
-    ride = conn.execute('SELECT * FROM rides WHERE id = ?', (ride_id,)).fetchone()
+
+    ride = Ride.query.get(ride_id)
     if not ride:
-        conn.close()
         flash('Ride not found.', 'error')
         return redirect(url_for('dashboard'))
-    
-    # Check available seats
-    booked_count = conn.execute('SELECT COUNT(*) FROM bookings WHERE ride_id = ?', (ride_id,)).fetchone()[0]
-    available_seats = ride['seats_available'] - booked_count
-    
+
+    booked_count = len(ride.bookings)
+    available_seats = ride.seats_available - booked_count
+
     if available_seats <= 0:
-        conn.close()
         flash('No seats available.', 'error')
         return redirect(url_for('dashboard'))
-    
-    if ride['driver_email'] == session['email']:
-        conn.close()
+    if ride.driver_email == session['email']:
         flash('You cannot book your own ride.', 'error')
         return redirect(url_for('dashboard'))
-    
-    # Check if already booked
-    existing_booking = conn.execute('''
-        SELECT * FROM bookings WHERE ride_id = ? AND passenger_email = ?
-    ''', (ride_id, session['email'])).fetchone()
-    
-    if existing_booking:
-        conn.close()
+    if Booking.query.filter_by(ride_id=ride_id, passenger_email=session['email']).first():
         flash('You have already booked this ride.', 'error')
         return redirect(url_for('dashboard'))
-    
-    ride_dict = dict(ride)
+
+    ride_dict = ride_to_dict(ride)
     ride_dict['available_seats'] = available_seats
-    
-    # Parse waypoints if they exist
-    waypoints = ride_dict.get('route_waypoints')
-    if waypoints:
-        try:
-            ride_dict['route_waypoints'] = json.loads(waypoints)
-        except (json.JSONDecodeError, TypeError):
-            ride_dict['route_waypoints'] = []
-    else:
-        ride_dict['route_waypoints'] = []
-    
+    ride_dict = parse_waypoints(ride_dict)
+
     if request.method == 'POST':
         pickup_location = request.form['pickup_location']
         dropoff_location = request.form['dropoff_location']
-        
-        # Add booking
-        conn.execute('''
-            INSERT INTO bookings (ride_id, passenger_email, passenger_name, pickup_location, 
-                                dropoff_location, amount_paid, payment_status, booked_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            ride_id,
-            session['email'],
-            session['name'],
-            pickup_location,
-            dropoff_location,
-            ride['price_per_seat'],
-            'pending',
-            datetime.now().strftime('%Y-%m-%d %H:%M')
+        db.session.add(Booking(
+            ride_id=ride_id,
+            passenger_email=session['email'],
+            passenger_name=session['name'],
+            pickup_location=pickup_location,
+            dropoff_location=dropoff_location,
+            amount_paid=ride.price_per_seat,
+            payment_status='pending',
+            booked_at=datetime.now().strftime('%Y-%m-%d %H:%M')
         ))
-        
-        # Log the booking
-        conn.execute('''
-            INSERT INTO activity_log (timestamp, user_name, action, details)
-            VALUES (?, ?, ?, ?)
-        ''', (
-            datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            session['name'],
-            'BOOK_RIDE',
-            f"Booked ride from {pickup_location} to {dropoff_location} (₹{ride['price_per_seat']})"
-        ))
-        
-        conn.commit()
-        conn.close()
-        
+        log_activity(session['name'], 'BOOK_RIDE',
+                     f"Booked ride from {pickup_location} to {dropoff_location} (₹{ride.price_per_seat})")
+        db.session.commit()
         flash('Ride booked successfully!', 'success')
         return redirect(url_for('dashboard'))
-    
-    conn.close()
+
     return render_template('book_ride.html', ride=ride_dict)
+
 
 @app.route('/cancel-ride/<int:ride_id>')
 def cancel_ride(ride_id):
-    """Cancel a ride (only by driver)."""
     if 'email' not in session:
         flash('You must be logged in.', 'error')
         return redirect(url_for('login'))
-    
-    conn = get_db_connection()
-    ride = conn.execute('SELECT * FROM rides WHERE id = ?', (ride_id,)).fetchone()
+
+    ride = Ride.query.get(ride_id)
     if not ride:
-        conn.close()
         flash('Ride not found.', 'error')
         return redirect(url_for('dashboard'))
-    
-    if ride['driver_email'] != session['email']:
-        conn.close()
+    if ride.driver_email != session['email']:
         flash('You can only cancel your own rides.', 'error')
         return redirect(url_for('dashboard'))
-    
-    # Delete bookings first
-    conn.execute('DELETE FROM bookings WHERE ride_id = ?', (ride_id,))
-    # Delete the ride
-    conn.execute('DELETE FROM rides WHERE id = ?', (ride_id,))
-    
-    # Log the cancellation
-    conn.execute('''
-        INSERT INTO activity_log (timestamp, user_name, action, details)
-        VALUES (?, ?, ?, ?)
-    ''', (
-        datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        session['name'],
-        'CANCEL_RIDE',
-        f"Cancelled ride from {ride['origin']} to {ride['destination']}"
-    ))
-    
-    conn.commit()
-    conn.close()
-    
+
+    log_activity(session['name'], 'CANCEL_RIDE',
+                 f"Cancelled ride from {ride.origin} to {ride.destination}")
+    db.session.delete(ride)
+    db.session.commit()
     flash('Ride cancelled successfully.', 'success')
     return redirect(url_for('dashboard'))
 
+
 @app.route('/login-driver')
 def login_driver():
-    """Driver login page."""
     return render_template('login.html', role='driver')
+
 
 @app.route('/login-passenger')
 def login_passenger():
-    """Passenger login page."""
     return render_template('login.html', role='passenger')
+
 
 @app.route('/ride-details/<int:ride_id>')
 def ride_details(ride_id):
-    """Show detailed ride information."""
     if 'email' not in session:
         flash('You must be logged in to view ride details.', 'error')
         return redirect(url_for('login'))
-    
-    conn = get_db_connection()
-    ride = conn.execute('''
-        SELECT r.*, COALESCE(COUNT(b.id), 0) as booked_seats
-        FROM rides r
-        LEFT JOIN bookings b ON r.id = b.ride_id
-        WHERE r.id = ?
-        GROUP BY r.id
-    ''', (ride_id,)).fetchone()
-    
+
+    ride = Ride.query.get(ride_id)
     if not ride:
-        conn.close()
         flash('Ride not found.', 'error')
         return redirect(url_for('dashboard'))
-    
-    ride_dict = dict(ride)
-    ride_dict['available_seats'] = ride_dict['seats_available'] - ride_dict['booked_seats']
-    
-    # Get passenger list
-    passengers = conn.execute('''
-        SELECT passenger_name, passenger_email, booked_at
-        FROM bookings WHERE ride_id = ?
-    ''', (ride_id,)).fetchall()
-    ride_dict['passengers'] = [dict(p) for p in passengers]
-    
-    conn.close()
-    
-    # Parse waypoints if they exist
-    waypoints = ride_dict.get('route_waypoints')
-    if waypoints:
-        try:
-            ride_dict['route_waypoints'] = json.loads(waypoints)
-        except (json.JSONDecodeError, TypeError):
-            ride_dict['route_waypoints'] = []
-    else:
-        ride_dict['route_waypoints'] = []
-    
-    return render_template('ride_details.html', 
-                         ride=ride_dict, 
-                         role=session.get('role'), 
-                         email=session.get('email'))
+
+    ride_dict = ride_to_dict(ride)
+    booked_seats = len(ride.bookings)
+    ride_dict['booked_seats'] = booked_seats
+    ride_dict['available_seats'] = ride_dict['seats_available'] - booked_seats
+    ride_dict['passengers'] = [
+        {'passenger_name': b.passenger_name, 'passenger_email': b.passenger_email, 'booked_at': b.booked_at}
+        for b in ride.bookings
+    ]
+    ride_dict = parse_waypoints(ride_dict)
+
+    return render_template('ride_details.html',
+                           ride=ride_dict,
+                           role=session.get('role'),
+                           email=session.get('email'))
+
 
 @app.route('/complete-ride/<int:ride_id>', methods=['POST'])
 def complete_ride(ride_id):
-    """Mark a ride as completed."""
     if 'email' not in session or session.get('role') != 'driver':
         flash('Unauthorized access.', 'error')
         return redirect(url_for('dashboard'))
-    
-    conn = get_db_connection()
-    ride = conn.execute('SELECT * FROM rides WHERE id = ? AND driver_email = ?', 
-                       (ride_id, session['email'])).fetchone()
-    
+
+    ride = Ride.query.filter_by(id=ride_id, driver_email=session['email']).first()
     if not ride:
-        conn.close()
         flash('Ride not found or unauthorized.', 'error')
         return redirect(url_for('dashboard'))
-    
-    # Update ride status
-    conn.execute('''
-        UPDATE rides SET ride_status = ?, completed_at = ? WHERE id = ?
-    ''', ('completed', datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ride_id))
-    
-    # Log the activity
-    conn.execute('''
-        INSERT INTO activity_log (timestamp, user_name, action, details)
-        VALUES (?, ?, ?, ?)
-    ''', (
-        datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        session['name'],
-        'COMPLETE_RIDE',
-        f"Completed ride from {ride['origin']} to {ride['destination']}"
-    ))
-    conn.commit()
-    conn.close()
-    
+
+    ride.ride_status = 'completed'
+    ride.completed_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    log_activity(session['name'], 'COMPLETE_RIDE',
+                 f"Completed ride from {ride.origin} to {ride.destination}")
+    db.session.commit()
     flash('Ride marked as completed!', 'success')
     return redirect(url_for('dashboard'))
 
 
 @app.route('/update-payment/<int:booking_id>', methods=['POST'])
 def update_payment(booking_id):
-    """Update payment status for a booking."""
     if 'email' not in session or session.get('role') != 'driver':
         flash('Unauthorized access.', 'error')
         return redirect(url_for('dashboard'))
-    
-    payment_status = request.form['payment_status']
-    
-    conn = get_db_connection()
-    # Verify the booking belongs to driver's ride
-    booking = conn.execute('''
-        SELECT b.*, r.driver_email FROM bookings b
-        JOIN rides r ON b.ride_id = r.id
-        WHERE b.id = ? AND r.driver_email = ?
-    ''', (booking_id, session['email'])).fetchone()
-    
+
+    booking = Booking.query.join(Ride).filter(
+        Booking.id == booking_id,
+        Ride.driver_email == session['email']
+    ).first()
+
     if not booking:
-        conn.close()
         flash('Booking not found or unauthorized.', 'error')
         return redirect(url_for('dashboard'))
-    
-    # Update payment status
-    conn.execute('UPDATE bookings SET payment_status = ? WHERE id = ?', 
-                (payment_status, booking_id))
-    
-    # Log the activity
-    conn.execute('''
-        INSERT INTO activity_log (timestamp, user_name, action, details)
-        VALUES (?, ?, ?, ?)
-    ''', (
-        datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        session['name'],
-        'UPDATE_PAYMENT',
-        f"Updated payment status to {payment_status} for booking #{booking_id}"
-    ))
-    conn.commit()
-    conn.close()
-    
+
+    payment_status = request.form['payment_status']
+    booking.payment_status = payment_status
+    log_activity(session['name'], 'UPDATE_PAYMENT',
+                 f"Updated payment status to {payment_status} for booking #{booking_id}")
+    db.session.commit()
     flash(f'Payment status updated to {payment_status}!', 'success')
     return redirect(url_for('dashboard'))
 
+
 @app.route('/chat/<int:ride_id>')
 def chat(ride_id):
-    """Chat for a specific ride."""
     if 'email' not in session:
         flash('You must be logged in to chat.', 'error')
         return redirect(url_for('login'))
-    
-    conn = get_db_connection()
-    ride = conn.execute('SELECT * FROM rides WHERE id = ?', (ride_id,)).fetchone()
+
+    ride = Ride.query.get(ride_id)
     if not ride:
-        conn.close()
         flash('Ride not found.', 'error')
         return redirect(url_for('dashboard'))
-    
-    # Check if user is part of this ride
-    is_driver = ride['driver_email'] == session['email']
-    is_passenger = conn.execute('SELECT * FROM bookings WHERE ride_id = ? AND passenger_email = ?', 
-                               (ride_id, session['email'])).fetchone() is not None
-    
+
+    is_driver = ride.driver_email == session['email']
+    is_passenger = Booking.query.filter_by(ride_id=ride_id, passenger_email=session['email']).first() is not None
+
     if not (is_driver or is_passenger):
-        conn.close()
         flash('You are not part of this ride.', 'error')
         return redirect(url_for('dashboard'))
-    
-    # Get chat messages
-    messages = conn.execute('''
-        SELECT * FROM chat_messages WHERE ride_id = ? ORDER BY timestamp ASC
-    ''', (ride_id,)).fetchall()
-    
-    conn.close()
-    return render_template('chat.html', ride=dict(ride), messages=[dict(m) for m in messages])
+
+    messages = ChatMessage.query.filter_by(ride_id=ride_id).order_by(ChatMessage.timestamp.asc()).all()
+    return render_template('chat.html',
+                           ride=ride_to_dict(ride),
+                           messages=[{c.name: getattr(m, c.name) for c in m.__table__.columns} for m in messages])
+
 
 @app.route('/send-message/<int:ride_id>', methods=['POST'])
 def send_message(ride_id):
-    """Send a chat message."""
     if 'email' not in session:
         return jsonify({'success': False, 'error': 'Not logged in'}), 401
-    
+
     message = request.form.get('message', '').strip()
     if not message:
         return jsonify({'success': False, 'error': 'Empty message'}), 400
-    
-    conn = get_db_connection()
-    conn.execute('''
-        INSERT INTO chat_messages (ride_id, sender_email, sender_name, message, timestamp)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (ride_id, session['email'], session['name'], message, 
-          datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-    conn.commit()
-    conn.close()
-    
+
+    db.session.add(ChatMessage(
+        ride_id=ride_id,
+        sender_email=session['email'],
+        sender_name=session['name'],
+        message=message,
+        timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ))
+    db.session.commit()
     return redirect(url_for('chat', ride_id=ride_id))
 
+
+with app.app_context():
+    db.create_all()
+    if not User.query.first():
+        db.session.add_all([
+            User(email='driver@college.edu', password=generate_password_hash('driver123'),
+                 name='Alex Driver', role='driver'),
+            User(email='passenger@college.edu', password=generate_password_hash('pass123'),
+                 name='Sam Passenger', role='passenger'),
+        ])
+        db.session.commit()
+
 if __name__ == '__main__':
-    init_db()
+    with app.app_context():
+        pass  # already initialized above
+        # Seed default users if table is empty
+        if not User.query.first():
+            db.session.add_all([
+                User(email='driver@college.edu', password=generate_password_hash('driver123'),
+                     name='Alex Driver', role='driver'),
+                User(email='passenger@college.edu', password=generate_password_hash('pass123'),
+                     name='Sam Passenger', role='passenger'),
+            ])
+            db.session.commit()
     app.run(debug=os.environ.get('FLASK_DEBUG', 'false').lower() == 'true')
