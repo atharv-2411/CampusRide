@@ -5,7 +5,7 @@ It helps reduce travel costs, traffic congestion, and fuel usage by connecting r
 
 This project is built using **Python Flask**, **Flask-SQLAlchemy**, **HTML**, **CSS**, and **PostgreSQL** (SQLite for local development).
 
-🔗 **Live Demo:** [[https://campusride.onrender.com](https://campusride.onrender.com](https://campusride-d6t4.onrender.com/))
+🔗 **Live Demo:** https://campusride-d6t4.onrender.com/
 
 ---
 
