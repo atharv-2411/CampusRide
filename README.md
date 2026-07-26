@@ -1,22 +1,23 @@
-﻿# CampusRide
-
 # 🚗 CampusRide
 
 **CampusRide** is a web-based **Carpooling Service for College or Company** that allows users to share rides easily.  
 It helps reduce travel costs, traffic congestion, and fuel usage by connecting riders going in the same direction.
 
-This project is built using **Python Flask**, **HTML**, **CSS**, and **SQLite** database.
+This project is built using **Python Flask**, **Flask-SQLAlchemy**, **HTML**, **CSS**, and **PostgreSQL** (SQLite for local development).
+
+🔗 **Live Demo:** [https://campusride.onrender.com](https://campusride.onrender.com)
 
 ---
 
 ## 🌟 Features
 
-- 🔐 User Signup and Login System  
-- 🚗 Add, View, and Manage Rides  
-- 📅 Book Available Rides  
-- 💬 Chat Feature Between Users  
-- 🏠 Dashboard for Viewing Ride Details  
-- 🗂️ SQLite Database to Store User and Ride Data  
+- 🔐 User Signup and Login System
+- 🚗 Add, View, and Manage Rides
+- 📅 Book Available Rides
+- 💬 Chat Feature Between Users
+- 🏠 Dashboard for Viewing Ride Details
+- 💰 Payment Status Tracking
+- 🗂️ PostgreSQL Database (SQLite fallback for local dev)
 
 ---
 
@@ -24,83 +25,119 @@ This project is built using **Python Flask**, **HTML**, **CSS**, and **SQLite** 
 
 | Component | Technology |
 |------------|-------------|
-| **Frontend** | HTML, CSS |
+| **Frontend** | HTML, CSS, Bootstrap 5 |
 | **Backend** | Python (Flask Framework) |
-| **Database** | SQLite |
-| **Server** | Flask Development Server |
+| **ORM** | Flask-SQLAlchemy |
+| **Database** | PostgreSQL (Production) / SQLite (Local) |
+| **Server** | Gunicorn (Production) / Flask Dev Server (Local) |
+| **Hosting** | Render |
 
 ---
 
-## ⚙️ Step-by-Step Setup Guide
-
-Follow these steps carefully to run the project on your computer 👇
-
----
+## 🚀 Local Development Setup
 
 ### 1️⃣ Prerequisites
 
 Make sure the following are installed:
 
 - **Python 3.8+** → [Download here](https://www.python.org/downloads/)
-- **pip** (Python package manager) → comes with Python by default
+- **pip** → comes with Python by default
 - **Git** → [Download here](https://git-scm.com/downloads)
 
-To check installation:
 ```bash
 python --version
 pip --version
 git --version
+```
 
-##2️⃣ Clone the Repository
+### 2️⃣ Clone the Repository
 
-Open Command Prompt or VS Code terminal, then run:
-
+```bash
 git clone https://github.com/atharv-2411/CampusRide.git
 cd CampusRide
+```
 
+### 3️⃣ Create a Virtual Environment
 
-3️⃣ Create a Virtual Environment (Recommended)
-
-This keeps dependencies isolated.
-
+```bash
 python -m venv venv
-
+```
 
 Activate it:
 
-On Windows:
+- **Windows:** `venv\Scripts\activate`
+- **macOS/Linux:** `source venv/bin/activate`
 
-venv\Scripts\activate
+### 4️⃣ Install Dependencies
 
-
-On macOS/Linux:
-
-source venv/bin/activate
-
-4️⃣ Install Required Packages
-
-Install Flask (and any other dependencies):
-
-pip install flask
-
-
-If you later add a requirements.txt file, use:
-
+```bash
 pip install -r requirements.txt
+```
 
-5️⃣ Run the Application
+### 5️⃣ Run the Application
 
-Once Flask is installed, start the app using:
-
+```bash
 python app.py
+```
 
+Visit: [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
-You should see something like:
+> SQLite database (`mspa.db`) is created automatically on first run.
 
- * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+---
 
-6️⃣ Open in Browser
+## 🌐 Production Deployment (Render)
 
-Go to:
+### Environment Variables
 
-http://127.0.0.1:5000/
+Set these in your Render Web Service settings:
+
+| Key | Value |
+|-----|-------|
+| `DATABASE_URL` | PostgreSQL Internal URL from Render |
+| `SECRET_KEY` | Any long random secret string |
+
+### Deploy Steps
+
+1. Push code to GitHub
+2. Create a **PostgreSQL** database on Render
+3. Create a **Web Service** on Render connected to this repo
+4. Set the environment variables above
+5. Build Command: `pip install -r requirements.txt`
+6. Start Command: `gunicorn app:app`
+
+Every push to `main` triggers an automatic redeploy.
+
+---
+
+## 🔑 Default Test Accounts
+
+| Role | Email | Password |
+|------|-------|----------|
+| Driver | `driver@college.edu` | `driver123` |
+| Passenger | `passenger@college.edu` | `pass123` |
+
+> These are seeded automatically on first boot if no users exist.
+
+---
+
+## 📁 Project Structure
+
+```
+CampusRide/
+├── app.py              # Main Flask application
+├── requirements.txt    # Python dependencies
+├── Procfile            # Render/Gunicorn start command
+├── static/
+│   └── style.css       # Custom styles
+└── templates/
+    ├── layout.html
+    ├── index.html
+    ├── login.html
+    ├── signup.html
+    ├── dashboard.html
+    ├── add_ride.html
+    ├── book_ride.html
+    ├── ride_details.html
+    └── chat.html
+```
